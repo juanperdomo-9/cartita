@@ -1,0 +1,146 @@
+/*
+ * Tokens de Cartita, copiados de prototipo/cartita-prototipo.html.
+ * Mismos nombres que el prototipo para que el porting de cada pantalla sea directo.
+ *
+ * Contextos:
+ *  - La carta (.escena): bordó por defecto; .escena.estilo-papel la pasa a papel.
+ *  - Armado: sigue el tema del celular. html.oscuro = bordó, sin la clase = papel.
+ *  - Portada de ocasión (.intro): papel y birome; html.oscuro la pasa a bordó.
+ *  - Inicio (.inicio): verde papel; html.oscuro lo pasa a verde noche.
+ */
+
+:root {
+  /* Paleta base (bordó) */
+  --fondo: #120810;
+  --vino: #22101b;
+  --crema: #fbf3ea;
+  --papel: #fffaf3;
+  --tinta: #2b1622;
+  --rosa: #ee6b93;
+  --rosa-osc: #c43c68;
+  --rosa-claro: #f7c9d6;
+  --oro: #e9b764;
+  --suave: rgb(251 243 234 / 0.74);
+  --linea: rgb(251 243 234 / 0.16);
+  --campo: #2a1322;
+  --borde: #4b2642;
+  --ok: #3fa964;
+  --error: #c0392b;
+
+  /* Papel y escritorio (portada) */
+  --p-fondo: #f3ebdd;
+  --p-papel: #fcf9f2;
+  --p-tinta: #2a211b;
+  --p-lapiz: #6d6157;
+  --birome: #2346a0;
+  --rojo: #cf3f45;
+  --p-linea: #dccfbc;
+
+  /* Tipografías */
+  --f-carta-titulo: "Instrument Serif", Georgia, serif;
+  --f-mano: Caveat, cursive;
+  --f-texto: "DM Sans", system-ui, sans-serif;
+  --f-portada-titulo: "Young Serif", Georgia, serif;
+  --f-birome: Kalam, cursive;
+  --f-sello: "Courier Prime", monospace;
+
+  /* Medidas */
+  --escena-ancho: 440px;
+  --escena-alto-max: 880px;
+  --escena-radio: 30px;
+  --envolver-ancho: 1120px;
+  --gutter: 20px;
+  --btn-alto: 50px;
+  --btn-mano-alto: 56px;
+  --btn-mano-chico-alto: 44px;
+  --radio-pildora: 999px;
+  --radio-mano: 255px 18px 225px 18px / 18px 225px 18px 255px;
+  --sombra-mano: 3px 4px 0 var(--p-tinta);
+
+  /* Ruido de papel (fondos) */
+  --ruido-bordo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  --ruido-papel: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .15 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  color-scheme: dark;
+}
+
+/* ===== La carta ===== */
+.escena {
+  --fondo: #120810;
+  --crema: #fbf3ea;
+  --suave: rgb(251 243 234 / 0.74);
+  --linea: rgb(251 243 234 / 0.16);
+  --rosa-claro: #f7c9d6;
+  --oro: #e9b764;
+  --campo: #2a1322;
+  --borde: #4b2642;
+  --t-xl: clamp(30px, min(11cqw, 6.4cqh), 54px);
+  --t-lg: clamp(26px, min(8.8cqw, 5.2cqh), 42px);
+}
+
+.escena.estilo-papel {
+  --vino: #f1e8d9;
+  --crema: #2a211b;
+  --suave: rgb(42 33 27 / 0.7);
+  --linea: rgb(42 33 27 / 0.14);
+  --rosa-claro: #c43c55;
+  --oro: #2346a0;
+  --campo: #fffdf8;
+  --borde: #d8cab4;
+  --ok: #2f8a4b;
+}
+
+/* ===== Armado: modo claro (papel) ===== */
+html:not(.oscuro) {
+  --fondo: #f3ebdd;
+  --crema: #2a211b;
+  --suave: rgb(42 33 27 / 0.68);
+  --linea: rgb(42 33 27 / 0.14);
+  --campo: #fffdf8;
+  --borde: #d8cab4;
+  --rosa-claro: #b8325c;
+  --oro: #2346a0;
+  --ok: #2f8a4b;
+  color-scheme: light;
+}
+
+/* ===== Portada de ocasión ===== */
+.intro {
+  --p-fondo: #f3ebdd;
+  --p-papel: #fcf9f2;
+  --p-tinta: #2a211b;
+  --p-lapiz: #6d6157;
+  --birome: #2346a0;
+  --rojo: #cf3f45;
+  --p-linea: #dccfbc;
+  color-scheme: light;
+}
+
+html.oscuro .intro {
+  --p-fondo: #1c0b15;
+  --p-tinta: #fbf3ea;
+  --p-lapiz: rgb(251 243 234 / 0.7);
+  --birome: #f7c9d6;
+  --rojo: #ee6b93;
+  --p-linea: rgb(251 243 234 / 0.18);
+  color-scheme: dark;
+}
+
+/* ===== Inicio: todas las ocasiones ===== */
+.inicio {
+  --p-fondo: #e6ece0;
+  --p-tinta: #1f3b2d;
+  --p-lapiz: #556b5d;
+  --birome: #23604a;
+  --rojo: #e2552d;
+  --p-linea: #c9d4c2;
+}
+
+html.oscuro .inicio {
+  --p-fondo: #0f1d16;
+  --p-tinta: #eef3ea;
+  --p-lapiz: rgb(238 243 234 / 0.7);
+  --birome: #9fd4b4;
+  --rojo: #ff7a52;
+  --p-linea: rgb(238 243 234 / 0.18);
+}
