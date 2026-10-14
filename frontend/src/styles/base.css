@@ -1,5 +1,8 @@
 /* Copiado tal cual de prototipo/cartita-prototipo.html (líneas 23-30, 50-60, 203-205). No cambiar sin mirar el prototipo. */
 
+/* Línea 7 del prototipo: lo oculto se oculta siempre, aunque la clase tenga display */
+html,body{margin:0}[hidden]{display:none!important}
+
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{height:100%;background:var(--fondo)}
 body{margin:0;min-height:100%;background:radial-gradient(90% 900px at 50% 0%,#2a1222,var(--fondo)) no-repeat,var(--fondo);color:var(--crema);font:16px/1.5 "DM Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}

@@ -4,7 +4,7 @@ Cartas digitales que se abren como un regalo. La guía completa del proyecto est
 
 - `backend/`: FastAPI + SQLAlchemy + Alembic (Python 3.12, uv)
 - `frontend/`: React + Vite + TypeScript (React Router, TanStack Query)
-- `render.yaml`: deploy en Render (web service + static site)
+- `Dockerfile` + `render.yaml`: deploy en Render como **un solo servicio** (FastAPI sirve la API y la web)
 
 ## Desarrollo local
 
@@ -55,22 +55,16 @@ Los tests que necesiten base usan un Postgres local descartable (Supabase CLI co
 5. **Storage → New bucket**: nombre `cartas`, **sin** marcar "Public bucket" (tiene que quedar privado). No hace falta crear policies: el backend usa la clave de servicio y entrega links firmados.
 6. Revisá los límites del plan gratuito (almacenamiento y pausa por inactividad), que están entre las decisiones abiertas de CLAUDE.md.
 
-### 2. Render
+### 2. Render (un solo servicio)
 
-1. En https://render.com: **New → Blueprint**, conectá el repo `juanperdomo-9/cartita`. Render lee `render.yaml` y crea `cartita-backend` y `cartita-frontend`.
-2. Te va a pedir las variables marcadas `sync: false`:
-   - `cartita-backend`:
-     - `DATABASE_URL`: la del paso 3 de Supabase
-     - `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`: las del paso 4
-     - `APP_BASE_URL`: la URL del backend (por ejemplo `https://cartita-backend.onrender.com`)
-     - `FRONTEND_URL`: la URL del frontend (por ejemplo `https://cartita-frontend.onrender.com`). Se usa para CORS: si no coincide exacto, el frontend no puede hablar con el backend.
-   - `cartita-frontend`:
-     - `VITE_API_URL`: la URL del backend
-   - `TOKEN_PEPPER` lo genera Render solo, y `STORAGE_BUCKET=cartas` y `PAGOS_ACTIVOS=false` ya vienen puestas. **No cambies `TOKEN_PEPPER` una vez que haya cartas**, porque dejarían de funcionar sus links de familia y de seguimiento.
-3. Las URLs exactas recién las sabés cuando Render crea los servicios: si cambian, actualizá `APP_BASE_URL`, `FRONTEND_URL` y `VITE_API_URL`, y redeployá el frontend (Vite mete `VITE_API_URL` en el build).
-4. Comprobá que `https://<backend>/health` responde `{"estado":"ok"}` y que el frontend dice "backend: ok".
+1. En https://render.com: **New → Blueprint**, conectá el repo `juanperdomo-9/cartita`. Render lee `render.yaml` y crea **un único** web service, `cartita`, que compila la web y la API juntas con el `Dockerfile`.
+2. Te va a pedir tres variables (las marcadas `sync: false`):
+   - `DATABASE_URL`: la del paso 3 de Supabase (pooler en modo transacción).
+   - `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`: las del paso 4. Esa clave va solo acá.
+3. El resto ya viene: `ENTORNO=produccion`, `STORAGE_BUCKET=cartas`, `PAGOS_ACTIVOS=false` y `TOKEN_PEPPER` (Render lo genera). **No cambies `TOKEN_PEPPER` una vez que haya cartas**: dejarían de andar sus links de familia y de seguimiento. La URL pública del sitio la toma sola de Render.
+4. Cuando termine el deploy, abrí `https://cartita.onrender.com/health` (o la URL que te dé Render): tiene que responder `{"estado":"ok"}`. Después abrí la URL sola y tiene que aparecer el Inicio.
 
-Notas del plan free de Render: el backend se duerme después de 15 minutos sin tráfico y tarda alrededor de un minuto en despertar. Además no tiene pre-deploy, por eso las migraciones corren en el build (`alembic upgrade head`).
+Notas del plan free: el servicio se duerme después de 15 minutos sin visitas y tarda alrededor de un minuto en despertar (la primera vez que ella abra el link puede tardar). Las migraciones corren cada vez que arranca.
 
 ## Antes de pasarle el link a tus amigos: prueba en celulares reales
 

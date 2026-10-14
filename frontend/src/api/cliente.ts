@@ -1,9 +1,9 @@
-// Cliente para hablar con el backend. La URL sale de VITE_API_URL.
-// En desarrollo, si no está definida, usa el mismo host que la página en el puerto 8000:
-// así se puede probar desde el celular en la misma red (http://IP-de-la-compu:5173).
-export const API_URL = (
-  import.meta.env.VITE_API_URL ?? `${location.protocol}//${location.hostname}:8000`
-).replace(/\/$/, '')
+// Cliente para hablar con el backend.
+// En producción la web y la API son el mismo servicio: las rutas van relativas (/api/...).
+// En desarrollo usa el mismo host que la página en el puerto 8000, así se puede probar
+// desde el celular en la misma red (http://IP-de-la-compu:5173). VITE_API_URL lo pisa.
+const PORDEFECTO = import.meta.env.PROD ? '' : `${location.protocol}//${location.hostname}:8000`
+export const API_URL = (import.meta.env.VITE_API_URL ?? PORDEFECTO).replace(/\/$/, '')
 
 export class ErrorApi extends Error {
   estado: number

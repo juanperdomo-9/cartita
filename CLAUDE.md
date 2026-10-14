@@ -65,7 +65,7 @@ En la Fase 1 solo está activa Día de la Madre, pero el Inicio con todas las oc
   - La app se conecta por el pooler en modo transacción. Ese modo no admite prepared statements, así que en psycopg va `prepare_threshold=None`.
   - Los tests automáticos usan un Postgres local descartable (Supabase CLI o Docker), nunca el proyecto real.
 - Storage: un bucket **privado** `cartas`. Las fotos y los audios se suben y se leen con links firmados que genera el backend.
-- Deploy: Render (web service para el backend, static site para el frontend con todas las rutas reescritas a `index.html`).
+- Deploy: Render, **un solo web service** (Docker): FastAPI sirve la API y la web compilada; las rutas que no son `/api` devuelven `index.html`.
 
 ## Estructura del repo
 
@@ -108,10 +108,10 @@ Nunca subir secretos al repo. Mantener un `.env.example` actualizado.
 | `SUPABASE_SERVICE_ROLE_KEY` | Clave de servicio. **Solo en el backend**, nunca en el frontend |
 | `STORAGE_BUCKET` | Nombre del bucket (`cartas`) |
 | `TOKEN_PEPPER` | Secreto que se mezcla al guardar el hash de los tokens |
-| `APP_BASE_URL` | URL pública del backend |
+| `APP_BASE_URL` | URL pública del backend (en Render se toma de `RENDER_EXTERNAL_URL`) |
 | `FRONTEND_URL` | URL pública del frontend (para armar los links y para CORS) |
-| `VITE_API_URL` | URL del backend, para el frontend (se mete en el build) |
-| `VITE_SITIO_URL` | URL pública del frontend, para la imagen de la vista previa de WhatsApp |
+| `VITE_API_URL` | Opcional, solo desarrollo. En producción la web y la API comparten URL |
+| `VITE_SITIO_URL` | Solo desarrollo. En producción el backend completa la URL de la imagen de WhatsApp |
 | `ENTORNO` | `produccion` en Render (exige `TOKEN_PEPPER` y `SUPABASE_URL`) |
 | `PAGOS_ACTIVOS` | `false` en la etapa 1 |
 | `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET` | Solo etapa 2 |
@@ -241,7 +241,7 @@ Detalles que vienen del prototipo y hay que mantener:
 **Fase 0: base del proyecto**
 - [x] Estructura de carpetas, uv, Vite, ruff, pytest, `.env.example`
 - [ ] Proyecto de Supabase, conexión por el pooler, Alembic, bucket privado `cartas`
-- [ ] Deploy inicial en Render (backend y frontend con reescritura a `index.html`)
+- [ ] Deploy inicial en Render (un solo servicio: `Dockerfile` + `render.yaml`)
 
 **Fase 1: Cartita gratis para amigos**
 - [x] Modelo de datos y migraciones

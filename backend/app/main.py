@@ -1,7 +1,9 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
-from app.config import get_settings
+from app.config import Settings, get_settings
 from app.routers import almacen, cartas, familia, publica, seguimiento
 
 
@@ -36,8 +38,31 @@ def crear_app() -> FastAPI:
         app.include_router(r.router)
     if not settings.usa_supabase:
         app.include_router(almacen.router)
+    if settings.frontend_dist and (settings.frontend_dist / "index.html").exists():
+        servir_frontend(app, settings)
 
     return app
+
+
+def servir_frontend(app: FastAPI, settings: Settings) -> None:
+    """Un solo servicio: la API y la web compilada (React) salen del mismo lugar.
+
+    Todas las rutas que no son de la API devuelven index.html (React Router se encarga).
+    """
+    dist = settings.frontend_dist.resolve()
+    # La imagen de la vista previa de WhatsApp necesita la URL completa del sitio.
+    index = (dist / "index.html").read_text(encoding="utf-8")
+    index = index.replace("%VITE_SITIO_URL%", settings.frontend_url)
+    app.mount("/assets", StaticFiles(directory=dist / "assets"), name="assets")
+
+    @app.get("/{ruta:path}", include_in_schema=False)
+    def web(ruta: str):
+        if ruta.startswith("api/"):
+            raise HTTPException(404, "No existe.")
+        archivo = (dist / ruta).resolve()
+        if ruta and archivo.is_file() and dist in archivo.parents:
+            return FileResponse(archivo)
+        return HTMLResponse(index)
 
 
 app = crear_app()

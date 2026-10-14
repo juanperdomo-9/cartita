@@ -1,15 +1,12 @@
-# Blueprint de Render para Cartita: backend (FastAPI) + frontend (static site).
+# Blueprint de Render para Cartita: UN solo web service (Docker) con la API y la web.
 # Los valores con `sync: false` se cargan a mano en el panel de Render (ver README).
+# APP_BASE_URL y FRONTEND_URL no hacen falta: se toman de RENDER_EXTERNAL_URL.
 services:
   - type: web
-    name: cartita-backend
-    runtime: python
+    name: cartita
+    runtime: docker
     plan: free
-    rootDir: backend
-    # uv se usa porque backend/uv.lock existe. Las migraciones corren en el build porque el plan
-    # free no tiene pre-deploy; si se pasa a un plan pago, moverlas a `preDeployCommand`.
-    buildCommand: uv sync --frozen --no-dev && uv run --no-sync alembic upgrade head
-    startCommand: uv run --no-sync uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /health
     envVars:
       - key: ENTORNO
@@ -24,29 +21,5 @@ services:
         value: cartas
       - key: TOKEN_PEPPER
         generateValue: true
-      - key: APP_BASE_URL
-        sync: false
-      - key: FRONTEND_URL
-        sync: false
       - key: PAGOS_ACTIVOS
         value: "false"
-
-  - type: web
-    name: cartita-frontend
-    runtime: static
-    rootDir: frontend
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    headers:
-      - path: /*
-        name: X-Robots-Tag
-        value: noindex
-    envVars:
-      - key: VITE_API_URL
-        sync: false
-      - key: VITE_SITIO_URL
-        sync: false

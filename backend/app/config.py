@@ -1,9 +1,10 @@
 """Configuración de la app, leída de variables de entorno (o de backend/.env en desarrollo)."""
 
+import os
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import SecretStr, field_validator
+from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PEPPER_DESARROLLO = "desarrollo-no-usar-en-produccion"
@@ -29,8 +30,13 @@ class Settings(BaseSettings):
     # Secreto que se mezcla al guardar el hash de los tokens
     token_pepper: SecretStr = SecretStr("")
 
+    # En Render las dos son la misma URL (un solo servicio): si no se cargan, se usa
+    # RENDER_EXTERNAL_URL, que Render define solo.
     app_base_url: str = "http://localhost:8000"
     frontend_url: str = "http://localhost:5173"
+
+    # Carpeta con el frontend compilado (frontend/dist). Si existe, el backend sirve la web.
+    frontend_dist: Path | None = None
 
     # Etapa 2: cobro con Mercado Pago
     pagos_activos: bool = False
@@ -50,6 +56,16 @@ class Settings(BaseSettings):
     @classmethod
     def sin_barra_final(cls, valor: str) -> str:
         return valor.rstrip("/")
+
+    @model_validator(mode="after")
+    def url_de_render(self) -> "Settings":
+        externa = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
+        if externa:
+            if "app_base_url" not in self.model_fields_set:
+                self.app_base_url = externa
+            if "frontend_url" not in self.model_fields_set:
+                self.frontend_url = externa
+        return self
 
     @property
     def es_produccion(self) -> bool:
