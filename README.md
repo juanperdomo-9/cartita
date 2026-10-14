@@ -57,12 +57,12 @@ Los tests que necesiten base usan un Postgres local descartable (Supabase CLI co
 
 ### 2. Render (un solo servicio)
 
-1. En https://render.com: **New → Blueprint**, conectá el repo `juanperdomo-9/cartita`. Render lee `render.yaml` y crea **un único** web service, `cartita`, que compila la web y la API juntas con el `Dockerfile`.
+1. En https://render.com: **New → Blueprint**, conectá el repo `juanperdomo-9/cartita`. Render lee `render.yaml` y crea **un único** web service, `paravos` (la dirección queda `paravos.onrender.com`), que compila la web y la API juntas con el `Dockerfile`.
 2. Te va a pedir tres variables (las marcadas `sync: false`):
    - `DATABASE_URL`: la del paso 3 de Supabase (pooler en modo transacción).
    - `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`: las del paso 4. Esa clave va solo acá.
 3. El resto ya viene: `ENTORNO=produccion`, `STORAGE_BUCKET=cartas`, `PAGOS_ACTIVOS=false` y `TOKEN_PEPPER` (Render lo genera). **No cambies `TOKEN_PEPPER` una vez que haya cartas**: dejarían de andar sus links de familia y de seguimiento. La URL pública del sitio la toma sola de Render.
-4. Cuando termine el deploy, abrí `https://cartita.onrender.com/health` (o la URL que te dé Render): tiene que responder `{"estado":"ok"}`. Después abrí la URL sola y tiene que aparecer el Inicio.
+4. Cuando termine el deploy, abrí `https://paravos.onrender.com/health` (si el nombre ya estaba tomado, Render le agrega unas letras: usá la URL que te muestre): tiene que responder `{"estado":"ok"}`. Después abrí la URL sola y tiene que aparecer el Inicio.
 
 Notas del plan free: el servicio se duerme después de 15 minutos sin visitas y tarda alrededor de un minuto en despertar (la primera vez que ella abra el link puede tardar). Las migraciones corren cada vez que arranca.
 

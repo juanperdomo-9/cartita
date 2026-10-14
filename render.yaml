@@ -3,7 +3,8 @@
 # APP_BASE_URL y FRONTEND_URL no hacen falta: se toman de RENDER_EXTERNAL_URL.
 services:
   - type: web
-    name: cartita
+    # El nombre define la dirección: paravos.onrender.com (neutra, no spoilea la sorpresa)
+    name: paravos
     runtime: docker
     plan: free
     # Misma zona que la base de Supabase (us-west-2, Oregon): menos demora en cada pedido
