@@ -1,7 +1,6 @@
-"""Modelos de SQLAlchemy. Las tablas se suman en la Fase 1 (siempre con migración de Alembic)."""
+"""Modelos de SQLAlchemy. Todo cambio de tablas va por una migración de Alembic."""
 
-from sqlalchemy.orm import DeclarativeBase
+from app.models.base import Base
+from app.models.carta import Archivo, Carta, Lectura, MensajeFamilia
 
-
-class Base(DeclarativeBase):
-    pass
+__all__ = ["Archivo", "Base", "Carta", "Lectura", "MensajeFamilia"]

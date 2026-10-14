@@ -1,21 +1,30 @@
 """Configuración de la app, leída de variables de entorno (o de backend/.env en desarrollo)."""
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+PEPPER_DESARROLLO = "desarrollo-no-usar-en-produccion"
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    # Postgres de Supabase por el pooler en modo transacción (puerto 6543)
-    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:54322/postgres"
+    # "desarrollo" o "produccion". En producción se exigen los secretos.
+    entorno: str = "desarrollo"
 
-    # Supabase Storage (solo desde el backend)
+    # Postgres de Supabase por el pooler en modo transacción (puerto 6543).
+    # En desarrollo: el Postgres de docker-compose.yml (o la Supabase CLI), en el puerto 54322.
+    database_url: str = "postgresql+psycopg://postgres:postgres@127.0.0.1:54322/cartita"
+
+    # Supabase Storage (solo desde el backend). Si SUPABASE_URL está vacía, los archivos se
+    # guardan en disco (solo para desarrollo), con links firmados igual que en Storage.
     supabase_url: str = ""
     supabase_service_role_key: SecretStr = SecretStr("")
     storage_bucket: str = "cartas"
+    almacen_local: Path = Path(".almacen")
 
     # Secreto que se mezcla al guardar el hash de los tokens
     token_pepper: SecretStr = SecretStr("")
@@ -37,10 +46,27 @@ class Settings(BaseSettings):
                 return "postgresql+psycopg://" + valor.removeprefix(prefijo)
         return valor
 
-    @field_validator("frontend_url", "app_base_url")
+    @field_validator("frontend_url", "app_base_url", "supabase_url")
     @classmethod
     def sin_barra_final(cls, valor: str) -> str:
         return valor.rstrip("/")
+
+    @property
+    def es_produccion(self) -> bool:
+        return self.entorno == "produccion"
+
+    @property
+    def usa_supabase(self) -> bool:
+        return bool(self.supabase_url)
+
+    @property
+    def pepper(self) -> str:
+        valor = self.token_pepper.get_secret_value()
+        if valor:
+            return valor
+        if self.es_produccion:
+            raise RuntimeError("Falta TOKEN_PEPPER")
+        return PEPPER_DESARROLLO
 
 
 @lru_cache

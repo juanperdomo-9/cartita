@@ -1,0 +1,21 @@
+# Postgres local para desarrollo y tests (nunca el proyecto real de Supabase).
+# Mismo puerto que usa la Supabase CLI (54322), así DATABASE_URL por defecto funciona igual.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cartita
+    ports:
+      - "54322:5432"
+    volumes:
+      - cartita-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  cartita-db:
