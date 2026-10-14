@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { ICONO_EQUIS, ICONO_PAUSA, ICONO_PLAY } from '../components/comunes'
-import { leerAudio, MAX_AUDIO_SEG, type AudioListo } from '../lib/archivos'
+import { leerAudio, MAX_AUDIO_SEG } from '../lib/archivos'
 import { mmss } from '../lib/texto'
+import type { AudioArmado } from './borrador'
 
 // Formatos para grabar, en orden de preferencia. MP4/AAC se escucha en iPhone y en Android;
 // si el navegador no puede grabar MP4 (Chrome viejo), queda WebM/Opus.
@@ -15,8 +16,8 @@ function formatoGrabacion(): string | undefined {
 }
 
 interface Props {
-  audios: AudioListo[]
-  onCambio: (a: AudioListo[]) => void
+  audios: AudioArmado[]
+  onCambio: (a: AudioArmado[]) => void
   max: number
   conNombre: boolean
   onError: (t: string) => void
@@ -110,6 +111,8 @@ export default function Audios({ audios, onCambio, max, conNombre, onError, text
                   placeholder="¿De quién es? Ej.: La abuela"
                   aria-label="De quién es el audio"
                   value={au.quien}
+                  disabled={!!au.id}
+                  title={au.id ? 'Ya está guardado. Para cambiar el nombre, sacalo y subilo de nuevo.' : undefined}
                   onChange={(e) => onCambio(audios.map((x, k) => (k === i ? { ...x, quien: e.target.value } : x)))}
                 />
               ) : (

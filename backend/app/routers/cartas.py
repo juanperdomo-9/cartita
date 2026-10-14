@@ -1,7 +1,7 @@
 """Armar y publicar: crear la carta, pedir links de subida, confirmar archivos y publicar."""
 
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, HTTPException
@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app import schemas
 from app.db import get_db
 from app.models import Archivo, Carta, MensajeFamilia
-from app.ocasiones import ocasion_activa
+from app.ocasiones import Ocasion, ocasion_activa
 from app.services import archivos as reglas
 from app.services.cancion import CancionInvalida, leer_cancion
 from app.services.cartas import ahora, por_admin_e_id
@@ -32,16 +32,16 @@ TokenAdmin = Annotated[str | None, Header(alias="X-Token-Admin")]
 TokenFamilia = Annotated[str | None, Header(alias="X-Token-Familia")]
 
 
-@router.post("/cartas", status_code=201, dependencies=[Depends(limitar("crear_carta"))])
-def crear_carta(datos: schemas.CartaCrear, db: Db) -> schemas.CartaCreada:
-    ocasion = ocasion_activa(datos.ocasion)
-    if not ocasion:
-        raise HTTPException(422, "Esa ocasión todavía no está disponible.")
+def campos_validados(
+    datos: schemas.CartaCrear, ocasion: Ocasion, abre_actual: datetime | None = None
+) -> dict:
+    """Los textos de la carta ya revisados. Se usa al crear y al editar."""
     try:
         cancion = leer_cancion(datos.cancion or "")
     except CancionInvalida as e:
         raise HTTPException(422, str(e)) from e
-    if datos.abre_desde is not None:
+    # Al editar, una fecha de apertura que no cambió se acepta aunque ya haya pasado.
+    if datos.abre_desde is not None and datos.abre_desde != abre_actual:
         if datos.abre_desde <= ahora():
             raise HTTPException(422, "Esa fecha de apertura ya pasó.")
         if datos.abre_desde > ahora() + timedelta(days=366):
@@ -49,6 +49,36 @@ def crear_carta(datos: schemas.CartaCrear, db: Db) -> schemas.CartaCreada:
     desde = datos.desde if ocasion.usa_contador else None
     if desde is not None and desde > ahora().date():
         raise HTTPException(422, "Esa fecha todavía no llegó.")
+    return {
+        "para": datos.para,
+        "de": datos.de,
+        "desde": desde,
+        "titulo": datos.titulo,
+        "subtitulo": datos.subtitulo,
+        "carta": datos.carta,
+        "lugar": datos.lugar,
+        "recuerdo": datos.recuerdo,
+        "polas": (datos.polas + ["", "", ""])[:3],
+        "antes_txt": datos.antes_txt,
+        "ahora_txt": datos.ahora_txt,
+        "gracias": datos.gracias,
+        "cancion_tipo": cancion.tipo if cancion else None,
+        "cancion_id": cancion.id if cancion else None,
+        "cancion_nombre": datos.cancion_nombre,
+        "regalo_titulo": datos.regalo_titulo,
+        "regalo_detalle": datos.regalo_detalle,
+        "estilo": datos.estilo,
+        "vista_previa": datos.vista_previa,
+        "abre_desde": datos.abre_desde,
+    }
+
+
+@router.post("/cartas", status_code=201, dependencies=[Depends(limitar("crear_carta"))])
+def crear_carta(datos: schemas.CartaCrear, db: Db) -> schemas.CartaCreada:
+    ocasion = ocasion_activa(datos.ocasion)
+    if not ocasion:
+        raise HTTPException(422, "Esa ocasión todavía no está disponible.")
+    campos = campos_validados(datos, ocasion)
 
     token_familia, token_admin = nuevo_token(), nuevo_token()
     carta = Carta(
@@ -59,32 +89,23 @@ def crear_carta(datos: schemas.CartaCrear, db: Db) -> schemas.CartaCreada:
         ocasion=ocasion.clave,
         estado="borrador",
         plan="gratis",
-        para=datos.para,
-        de=datos.de,
-        desde=desde,
-        titulo=datos.titulo,
-        subtitulo=datos.subtitulo,
-        carta=datos.carta,
-        lugar=datos.lugar,
-        recuerdo=datos.recuerdo,
-        polas=(datos.polas + ["", "", ""])[:3],
-        antes_txt=datos.antes_txt,
-        ahora_txt=datos.ahora_txt,
-        gracias=datos.gracias,
-        cancion_tipo=cancion.tipo if cancion else None,
-        cancion_id=cancion.id if cancion else None,
-        cancion_nombre=datos.cancion_nombre,
-        regalo_titulo=datos.regalo_titulo,
-        regalo_detalle=datos.regalo_detalle,
-        estilo=datos.estilo,
-        vista_previa=datos.vista_previa,
-        abre_desde=datos.abre_desde,
+        **campos,
     )
     db.add(carta)
     db.commit()
     return schemas.CartaCreada(
         id=carta.id, slug=carta.slug, token_familia=token_familia, token_admin=token_admin
     )
+
+
+def lleno(db: Session, carta: Carta, rol: str) -> bool:
+    """Cuenta solo los confirmados: una subida que quedó a medias no ocupa lugar."""
+    ya = db.scalar(
+        select(func.count())
+        .select_from(Archivo)
+        .where(Archivo.carta_id == carta.id, Archivo.rol == rol, Archivo.confirmado)
+    )
+    return ya >= reglas.LIMITE_POR_ROL[rol]
 
 
 def nuevo_archivo(
@@ -117,12 +138,7 @@ def nuevo_archivo(
         esperado = "audio" if rol in reglas.ROLES_AUDIO else "foto"
         if pedido.tipo != esperado:
             raise HTTPException(422, "Ese archivo no va en ese lugar de la carta.")
-        ya = db.scalar(
-            select(func.count())
-            .select_from(Archivo)
-            .where(Archivo.carta_id == carta.id, Archivo.rol == rol)
-        )
-        if ya >= reglas.LIMITE_POR_ROL[rol]:
+        if lleno(db, carta, rol):
             raise HTTPException(422, "Ya llegaste al máximo de archivos para esa parte.")
 
     archivo_id = uuid.uuid4()
@@ -186,6 +202,11 @@ def confirmar_archivo(
         return {"confirmado": True}
 
     almacen = get_almacen()
+    if archivo.mensaje_id is None and lleno(db, carta, archivo.rol):
+        almacen.borrar([archivo.ruta])
+        db.delete(archivo)
+        db.commit()
+        raise HTTPException(422, "Ya llegaste al máximo de archivos para esa parte.")
     leido = almacen.inicio(archivo.ruta)
     if leido is None:
         raise HTTPException(409, "El archivo todavía no se subió.")

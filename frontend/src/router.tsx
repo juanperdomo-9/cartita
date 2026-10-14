@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router'
 import Armar from './armar/Armar'
 import { CartaAdmin, CartaElla } from './pages/Carta'
+import EditarCarta from './pages/EditarCarta'
 import Ejemplo from './pages/Ejemplo'
 import Familia from './pages/Familia'
 import Inicio from './pages/Inicio'
@@ -20,5 +21,6 @@ export const router = createBrowserRouter([
   { path: '/s/:token', element: <Familia /> },
   { path: '/e/:token', element: <Seguimiento /> },
   { path: '/e/:token/carta', element: <CartaAdmin /> },
+  { path: '/e/:token/editar', element: <EditarCarta /> },
   { path: '*', element: <NoEncontrada /> },
 ])

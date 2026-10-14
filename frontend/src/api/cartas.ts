@@ -156,7 +156,7 @@ async function subirFirmado(
 }
 
 export function subirArchivoCarta(
-  carta: CartaCreada,
+  carta: Pick<CartaCreada, 'id' | 'token_admin'>,
   archivo: Blob,
   pedido: PedidoArchivo & { rol: Rol; orden?: number; quien?: string },
 ) {
@@ -210,6 +210,31 @@ export async function sumarMensaje(
     )
   }
 }
+
+// ---------- Editar ----------
+export interface ArchivoGuardado {
+  id: string
+  tipo: 'foto' | 'audio'
+  rol: string
+  orden: number
+  url: string
+  ancho: number | null
+  alto: number | null
+  seg: number
+  quien: string
+}
+
+export interface CartaParaEditar {
+  id: string
+  datos: CartaCrear
+  archivos: ArchivoGuardado[]
+}
+
+export const verEdicion = (token: string) => pedir<CartaParaEditar>(`/api/e/${encodeURIComponent(token)}/editar`)
+export const guardarEdicion = (token: string, datos: CartaCrear) =>
+  pedir<{ ok: boolean }>(`/api/e/${encodeURIComponent(token)}`, { method: 'PUT', body: JSON.stringify(datos) })
+export const borrarArchivo = (token: string, id: string) =>
+  pedir<void>(`/api/e/${encodeURIComponent(token)}/archivos/${id}`, { method: 'DELETE' })
 
 // ---------- Seguimiento ----------
 export const verSeguimiento = (token: string) => pedir<Seguimiento>(`/api/e/${encodeURIComponent(token)}`)

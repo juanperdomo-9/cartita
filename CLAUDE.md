@@ -170,6 +170,8 @@ Límites por carta (validados en el backend): 1 foto de recuerdo, 3 polaroids, 6
 
 **Seguimiento** (`/e/{token_admin}`): estado de lectura, abrazos, respuesta, nombres de la familia que escribió, botón para ocultar un mensaje, "Ver la carta" y "Copiar link para la familia".
 
+**Editar** (`/e/{token_admin}/editar`, decidido el 14/10): quien la armó puede cambiar los textos y sumar, reemplazar o sacar sus fotos y audios con el mismo armado. El link de ella no cambia. Los mensajes de la familia no se editan: se ocultan desde el seguimiento.
+
 ## La carta (frontend)
 
 Orden de las pantallas, cada una aparece solo si tiene contenido (igual que el prototipo):
@@ -267,7 +269,6 @@ Detalles que vienen del prototipo y hay que mantener:
 Preguntá antes de asumir cualquiera de estas:
 - Dominio definitivo (Cartita es nombre provisorio)
 - Cuánto tiempo se guardan las cartas y si quien la armó puede borrarla
-- Si quien la armó puede editar la carta después de crearla
 - Si se pide un email opcional a quien la arma para avisarle cuando ella la abra (necesita proveedor de email)
 - Plan de Supabase: el gratuito tiene límite de almacenamiento y se pausa por inactividad. Cada carta completa pesa unos 5 a 10 MB. Verificá los límites actuales
 - Etapa 2: precio, qué funciones son premium y si se paga antes o después de armar

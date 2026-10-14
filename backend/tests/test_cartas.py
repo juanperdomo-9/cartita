@@ -277,3 +277,48 @@ def test_limite_por_ip_para_crear_cartas(cliente):
 
 def test_api_responde_noindex(cliente):
     assert cliente.get("/health").headers["X-Robots-Tag"] == "noindex"
+
+
+# ---------- Editar ----------
+def test_editar_textos_y_archivos(cliente):
+    c = nueva_carta(cliente, cancion="https://youtu.be/dQw4w9WgXcQ")
+    publicar(cliente, c)
+    assert subir(cliente, c, JPG)[0] == 200
+    seg = f"/api/e/{c['token_admin']}"
+
+    e = cliente.get(seg + "/editar").json()
+    assert e["datos"]["carta"] == "Te quiero"
+    assert e["datos"]["cancion"] == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    foto = e["archivos"][0]
+    assert foto["rol"] == "principal" and cliente.get(foto["url"]).content == JPG
+
+    datos = e["datos"] | {"carta": "Te quiero mucho", "titulo": "Nuevo título"}
+    assert cliente.put(seg, json=datos).status_code == 200
+    body = cliente.get(f"/api/c/{c['slug']}").json()["contenido"]
+    assert body["carta"] == "Te quiero mucho" and body["titulo"] == "Nuevo título"
+    assert cliente.put(seg, json=datos | {"carta": "a" * 701}).status_code == 422
+
+    # Cambiar la foto del recuerdo: se borra la vieja y se sube otra
+    assert subir(cliente, c, JPG)[0] == 422  # ya hay una
+    assert cliente.delete(f"{seg}/archivos/{foto['id']}").status_code == 204
+    assert cliente.get(f"/api/c/{c['slug']}").json()["contenido"]["fotos"]["principal"] is None
+    assert subir(cliente, c, JPG)[0] == 200
+    # Sumar audios después de crear la carta
+    assert subir(cliente, c, M4A, tipo="audio", rol="audio_autor", mime="audio/mp4")[0] == 200
+    assert len(cliente.get(f"/api/c/{c['slug']}").json()["contenido"]["audios"]) == 1
+
+
+def test_editar_con_token_equivocado_o_archivo_de_la_familia(cliente):
+    c = nueva_carta(cliente)
+    publicar(cliente, c)
+    malo = "x" * 32
+    assert cliente.get(f"/api/e/{malo}/editar").status_code == 404
+    assert cliente.put(f"/api/e/{malo}", json={"para": "Ma", "de": "Yo"}).status_code == 404
+    fam = f"/api/s/{c['token_familia']}"
+    m = cliente.post(f"{fam}/mensajes", json={"nombre": "Papá", "texto": "Hola"}).json()
+    r = cliente.post(
+        f"{fam}/mensajes/{m['id']}/archivos",
+        json={"tipo": "foto", "mime": "image/jpeg", "bytes": len(JPG)},
+    ).json()
+    # El de la familia no se borra desde editar (se oculta el mensaje)
+    assert cliente.delete(f"/api/e/{c['token_admin']}/archivos/{r['id']}").status_code == 404

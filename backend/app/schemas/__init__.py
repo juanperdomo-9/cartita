@@ -219,3 +219,22 @@ class Seguimiento(BaseModel):
 
 class CambioMensaje(BaseModel):
     visible: bool
+
+
+# ---------- Editar ----------
+class ArchivoGuardado(BaseModel):
+    id: uuid.UUID
+    tipo: TipoArchivo
+    rol: str
+    orden: int
+    url: str
+    ancho: int | None
+    alto: int | None
+    seg: int
+    quien: str
+
+
+class CartaParaEditar(BaseModel):
+    id: uuid.UUID
+    datos: CartaCrear
+    archivos: list[ArchivoGuardado]

@@ -1,9 +1,19 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { crearCarta, publicarCarta, subirArchivoCarta, type CartaCreada, type Rol } from '../api/cartas'
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  borrarArchivo,
+  crearCarta,
+  guardarEdicion,
+  publicarCarta,
+  subirArchivoCarta,
+  type CartaCreada,
+  type Rol,
+} from '../api/cartas'
+import { ErrorApi } from '../api/cliente'
 import Escena from '../carta/Escena'
 import { ICONO_EQUIS, Marca, copiar, useToast } from '../components/comunes'
-import { comprimir, guardarMia, mimeDe, type AudioListo, type FotoLista } from '../lib/archivos'
+import { comprimir, guardarMia, mimeDe } from '../lib/archivos'
 import { leerCancion, nombreServicio } from '../lib/cancion'
 import { esPlural, fechaLinda } from '../lib/texto'
 import { tituloVistaPrevia, VISTAS_PREVIAS } from '../lib/vistaPrevia'
@@ -16,9 +26,12 @@ import {
   borrarBorrador,
   cargarBorrador,
   guardarBorrador,
+  idsPresentes,
   lineasGracias,
   SIN_FOTOS,
+  type AudioArmado,
   type Borrador,
+  type FotoArmado,
   type Fotos,
   type LugarFoto,
 } from './borrador'
@@ -58,12 +71,22 @@ interface Creacion {
   publicada: boolean
 }
 
-export default function Armar({ ocasion }: { ocasion: OcasionActiva }) {
+/** Editar una carta ya creada: el mismo armado, cargado con lo guardado. */
+export interface Edicion {
+  token: string
+  id: string
+  inicial: { b: Borrador; fotos: Fotos; audios: AudioArmado[] }
+}
+
+export default function Armar({ ocasion, edicion }: { ocasion: OcasionActiva; edicion?: Edicion }) {
   const navegar = useNavigate()
-  const [b, setB] = useState<Borrador>(() => cargarBorrador(ocasion))
-  const [fotos, setFotos] = useState<Fotos>(SIN_FOTOS)
-  const [audios, setAudios] = useState<AudioListo[]>([])
-  const [paso, setPaso] = useState(0)
+  const cliente = useQueryClient()
+  const [b, setB] = useState<Borrador>(() => edicion?.inicial.b ?? cargarBorrador(ocasion))
+  const [fotos, setFotos] = useState<Fotos>(() => edicion?.inicial.fotos ?? SIN_FOTOS)
+  const [audios, setAudios] = useState<AudioArmado[]>(() => edicion?.inicial.audios ?? [])
+  const [paso, setPaso] = useState(edicion ? NOMBRES.length - 1 : 0)
+  const originales = useRef(edicion ? idsPresentes(edicion.inicial.fotos, edicion.inicial.audios) : new Set<string>())
+  const subidosEdicion = useRef(new Set<string>())
   const [errores, setErrores] = useState<Partial<Record<'para' | 'de' | 'fecha', string>>>({})
   const [previa, setPrevia] = useState(false)
   const [estado, setEstado] = useState('')
@@ -74,7 +97,9 @@ export default function Armar({ ocasion }: { ocasion: OcasionActiva }) {
   const titulo = useRef<HTMLHeadingElement>(null)
   const resultado = useRef<HTMLDivElement>(null)
 
-  useEffect(() => guardarBorrador(ocasion, b), [b, ocasion])
+  useEffect(() => {
+    if (!edicion) guardarBorrador(ocasion, b)
+  }, [b, ocasion, edicion])
   useEffect(() => {
     window.scrollTo(0, 0)
     titulo.current?.focus({ preventScroll: true })
@@ -90,7 +115,7 @@ export default function Armar({ ocasion }: { ocasion: OcasionActiva }) {
     if (creacion.current?.publicada) creacion.current = null
     setLista(null)
   }
-  const ponerFoto = (k: LugarFoto, f: FotoLista | null) => {
+  const ponerFoto = (k: LugarFoto, f: FotoArmado | null) => {
     setFotos((x) => ({ ...x, [k]: f }))
     olvidarCreacion()
   }
@@ -121,29 +146,33 @@ export default function Armar({ ocasion }: { ocasion: OcasionActiva }) {
 
   const derecha = () => {
     if (paso < TOTAL) {
-      if (valido(paso)) setPaso(paso + 1)
+      // Al editar, cada parte vuelve directo al resumen
+      if (valido(paso)) setPaso(edicion ? TOTAL : paso + 1)
       return
     }
-    crearLink()
+    if (edicion) guardarCambios(edicion)
+    else crearLink()
   }
 
   const archivosPendientes = () => {
     const l: { clave: string; blob: Blob; pedido: Parameters<typeof subirArchivoCarta>[2] }[] = []
     ;(['principal', 'p0', 'p1', 'p2', 'antes', 'ahora'] as const).forEach((k) => {
       const f = fotos[k]
-      if (f)
-        l.push({ clave: k, blob: f.blob, pedido: { tipo: 'foto', rol: k as Rol, mime: 'image/jpeg', bytes: f.blob.size, ancho: f.ancho, alto: f.alto } })
+      if (f?.blob)
+        l.push({ clave: k + f.url, blob: f.blob, pedido: { tipo: 'foto', rol: k as Rol, mime: 'image/jpeg', bytes: f.blob.size, ancho: f.ancho, alto: f.alto } })
     })
-    fotos.pila.forEach((f, i) =>
-      l.push({
-        clave: 'pila' + i,
-        blob: f.blob,
-        pedido: { tipo: 'foto', rol: 'pila', orden: i, mime: 'image/jpeg', bytes: f.blob.size, ancho: f.ancho, alto: f.alto },
-      }),
-    )
-    audios.forEach((a, i) =>
-      l.push({
-        clave: 'audio' + i,
+    fotos.pila.forEach((f, i) => {
+      if (f.blob)
+        l.push({
+          clave: 'pila' + f.url,
+          blob: f.blob,
+          pedido: { tipo: 'foto', rol: 'pila', orden: i, mime: 'image/jpeg', bytes: f.blob.size, ancho: f.ancho, alto: f.alto },
+        })
+    })
+    audios.forEach((a, i) => {
+      if (a.blob)
+        l.push({
+        clave: 'audio' + a.url,
         blob: a.blob,
         pedido: {
           tipo: 'audio',
@@ -154,9 +183,42 @@ export default function Armar({ ocasion }: { ocasion: OcasionActiva }) {
           duracion_seg: a.seg,
           quien: a.quien.trim().slice(0, 30),
         },
-      }),
-    )
+      })
+    })
     return l
+  }
+
+  const guardarCambios = async (e: Edicion) => {
+    setCreando(true)
+    setEstado('Guardando los cambios…')
+    try {
+      await guardarEdicion(e.token, aCrear(b, ocasion))
+      // Primero se sacan las fotos y audios que quitaste, así hay lugar para los nuevos
+      const siguen = idsPresentes(fotos, audios)
+      for (const id of originales.current) {
+        if (siguen.has(id)) continue
+        await borrarArchivo(e.token, id).catch((er) => {
+          if (!(er instanceof ErrorApi && er.estado === 404)) throw er
+        })
+        originales.current.delete(id)
+      }
+      const pendientes = archivosPendientes()
+      let i = 0
+      for (const p of pendientes) {
+        i++
+        if (subidosEdicion.current.has(p.clave)) continue
+        setEstado(`Subiendo lo nuevo (${i} de ${pendientes.length})…`)
+        await subirArchivoCarta({ id: e.id, token_admin: e.token }, p.blob, p.pedido)
+        subidosEdicion.current.add(p.clave)
+      }
+      cliente.removeQueries({ queryKey: ['carta-admin', e.token] })
+      cliente.removeQueries({ queryKey: ['seguimiento', e.token] })
+      navegar('/e/' + e.token, { state: { guardado: true } })
+    } catch (er) {
+      setEstado((er instanceof Error ? er.message : 'No se pudo guardar.') + ' Tocá “Guardar cambios” para reintentar.')
+    } finally {
+      setCreando(false)
+    }
   }
 
   const crearLink = async () => {
@@ -625,7 +687,9 @@ export default function Armar({ ocasion }: { ocasion: OcasionActiva }) {
 
     // 11. Revisá y creá el link
     <>
-      {encabezado(<>¡Ya <em>casi!</em></>, "Revisá que esté todo. Mirá cómo queda y, cuando te guste, creá el link.")}
+      {edicion
+        ? encabezado(<>Editá tu <em>carta</em></>, "Tocá “Editar” en la parte que quieras cambiar: podés sumar o sacar fotos y audios, y cambiar los textos. El link sigue siendo el mismo.")
+        : encabezado(<>¡Ya <em>casi!</em></>, "Revisá que esté todo. Mirá cómo queda y, cuando te guste, creá el link.")}
       <Resumen b={b} fotos={fotos} audios={audios} ocasion={ocasion} irPaso={setPaso} />
       <p className="estado" aria-live="polite">
         {estado}
@@ -638,17 +702,17 @@ export default function Armar({ ocasion }: { ocasion: OcasionActiva }) {
   return (
     <>
       <main className="armar" hidden={previa}>
-        <Marca etiqueta={ocasion.etiqueta} logoA={ocasion.ruta} />
+        <Marca etiqueta={edicion ? 'Editando la carta' : ocasion.etiqueta} logoA={edicion ? '/e/' + edicion.token : ocasion.ruta} />
         <div className="cabecera">
           <div className="cab-fila">
-            <button className="atras" type="button" aria-label="Paso anterior" onClick={() => (n === 0 ? navegar(ocasion.ruta) : setPaso(n - 1))}>
+            <button className="atras" type="button" aria-label="Paso anterior" onClick={() => (edicion ? (n === TOTAL ? navegar('/e/' + edicion.token) : setPaso(TOTAL)) : n === 0 ? navegar(ocasion.ruta) : setPaso(n - 1))}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M15 6l-6 6 6 6" />
               </svg>
             </button>
             <div className="cab-texto">
-              <small>{n < TOTAL ? 'Paso ' + (n + 1) + ' de ' + TOTAL + (OPCIONALES.has(n) ? ' · opcional' : '') : 'Último paso'}</small>
-              <b>{NOMBRES[n]}</b>
+              <small>{n < TOTAL ? 'Paso ' + (n + 1) + ' de ' + TOTAL + (OPCIONALES.has(n) ? ' · opcional' : '') : edicion ? 'Editando' : 'Último paso'}</small>
+              <b>{edicion && n === TOTAL ? 'Revisá y guardá los cambios' : NOMBRES[n]}</b>
             </div>
           </div>
           <div className="progreso" aria-hidden="true">
@@ -672,7 +736,17 @@ export default function Armar({ ocasion }: { ocasion: OcasionActiva }) {
               onClick={n === TOTAL && lista ? terminar : derecha}
               disabled={creando}
             >
-              {n < TOTAL ? (n === TOTAL - 1 ? 'Revisar' : 'Siguiente') : lista ? 'Terminar' : 'Crear mi link'}
+              {edicion
+                ? n < TOTAL
+                  ? 'Listo'
+                  : 'Guardar cambios'
+                : n < TOTAL
+                  ? n === TOTAL - 1
+                    ? 'Revisar'
+                    : 'Siguiente'
+                  : lista
+                    ? 'Terminar'
+                    : 'Crear mi link'}
             </button>
           </div>
         </div>
@@ -698,7 +772,7 @@ function Resumen({
 }: {
   b: Borrador
   fotos: Fotos
-  audios: AudioListo[]
+  audios: AudioArmado[]
   ocasion: OcasionActiva
   irPaso: (n: number) => void
 }) {

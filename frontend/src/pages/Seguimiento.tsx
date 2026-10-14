@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 import { cambiarMensaje, verSeguimiento } from '../api/cartas'
 import { ConCursiva, copiar, Marca, useToast } from '../components/comunes'
 import { fechaLinda } from '../lib/texto'
@@ -12,6 +12,8 @@ export default function Seguimiento() {
   const cliente = useQueryClient()
   const q = useQuery({ queryKey: ['seguimiento', token], queryFn: () => verSeguimiento(token), retry: false })
   const [toast, avisar] = useToast()
+  // Volviendo de "Editar la carta" con los cambios guardados
+  const guardado = !!(useLocation().state as { guardado?: boolean } | null)?.guardado
   const [copiado, setCopiado] = useState('')
 
   const s = q.data
@@ -64,6 +66,7 @@ export default function Seguimiento() {
         <h1 className="titulo">
           <ConCursiva texto={'Cómo le cayó a *' + s.para + '*'} />
         </h1>
+        {guardado && <p className="donde">¡Listo! Guardamos los cambios. El link de ella es el mismo.</p>}
         <div className="tarjeta">
           <div className="estado-linea">
             <span className={'punto' + (l.abierta_a ? ' si' : '')} />
@@ -118,6 +121,9 @@ export default function Seguimiento() {
         <div className="fila">
           <Link className="btn rosa" to={'/e/' + token + '/carta'}>
             Ver la carta
+          </Link>
+          <Link className="btn vidrio" to={'/e/' + token + '/editar'}>
+            Editar la carta
           </Link>
           <button type="button" className="btn vidrio" onClick={() => q.refetch()}>
             Actualizar

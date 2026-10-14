@@ -1,7 +1,7 @@
 // Estado del armado: los textos se guardan como borrador en el navegador (localStorage);
 // las fotos y los audios quedan en memoria hasta crear la carta, como el prototipo.
 
-import type { CartaCrear } from '../api/cartas'
+import type { CartaCrear, CartaParaEditar } from '../api/cartas'
 import type { CartaVista, Estilo } from '../carta/tipos'
 import type { AudioListo, FotoLista } from '../lib/archivos'
 import { VISTAS_PREVIAS, type ClaveVistaPrevia } from '../lib/vistaPrevia'
@@ -59,7 +59,11 @@ export const VACIO: Borrador = {
 }
 
 export type LugarFoto = 'principal' | 'p0' | 'p1' | 'p2' | 'antes' | 'ahora'
-export type Fotos = Record<LugarFoto, FotoLista | null> & { pila: FotoLista[] }
+
+/** Una foto del armado: nueva (con `blob`, falta subirla) o ya guardada (con `id`). */
+export type FotoArmado = Omit<FotoLista, 'blob'> & { blob?: Blob; id?: string }
+export type AudioArmado = Omit<AudioListo, 'blob'> & { blob?: Blob; id?: string }
+export type Fotos = Record<LugarFoto, FotoArmado | null> & { pila: FotoArmado[] }
 
 export const SIN_FOTOS: Fotos = { principal: null, p0: null, p1: null, p2: null, antes: null, ahora: null, pila: [] }
 
@@ -147,8 +151,8 @@ export function aCrear(b: Borrador, o: OcasionActiva): CartaCrear {
 }
 
 /** Para la vista previa: la carta tal como la vería ella, con las fotos en memoria. */
-export function aVistaPrevia(b: Borrador, o: OcasionActiva, f: Fotos, audios: AudioListo[]): CartaVista {
-  const foto = (x: FotoLista | null) => (x ? { url: x.url, ancho: x.ancho, alto: x.alto } : null)
+export function aVistaPrevia(b: Borrador, o: OcasionActiva, f: Fotos, audios: AudioArmado[]): CartaVista {
+  const foto = (x: FotoArmado | null) => (x ? { url: x.url, ancho: x.ancho, alto: x.alto } : null)
   return {
     ocasion: o.clave,
     para: b.para.trim() || o.textos.paraDefecto,
@@ -181,4 +185,71 @@ export function aVistaPrevia(b: Borrador, o: OcasionActiva, f: Fotos, audios: Au
     audios: audios.map((a) => ({ quien: a.quien.trim(), seg: a.seg, src: a.url })),
     mensajes: [],
   }
+}
+
+/** Fecha para <input type="datetime-local"> en la hora del celular. */
+function aLocal(iso: string): string {
+  const d = new Date(iso)
+  const dos = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}T${dos(d.getHours())}:${dos(d.getMinutes())}`
+}
+
+/** Para editar: la carta guardada pasada a borrador, fotos y audios (con su id). */
+export function desdeEdicion(e: CartaParaEditar, o: OcasionActiva): { b: Borrador; fotos: Fotos; audios: AudioArmado[] } {
+  const d = e.datos
+  let entrega: Borrador['entrega'] = 'ya',
+    fecha = ''
+  if (d.abre_desde && Date.parse(d.abre_desde) > Date.now()) {
+    if (o.apertura && Date.parse(o.apertura.iso) === Date.parse(d.abre_desde)) entrega = 'dia'
+    else {
+      entrega = 'otra'
+      fecha = aLocal(d.abre_desde)
+    }
+  }
+  const b: Borrador = {
+    para: d.para,
+    de: d.de,
+    desde: d.desde || '',
+    titulo: d.titulo,
+    subtitulo: d.subtitulo,
+    estilo: d.estilo,
+    carta: d.carta,
+    lugar: d.lugar,
+    recuerdo: d.recuerdo,
+    pc0: d.polas[0] || '',
+    pc1: d.polas[1] || '',
+    pc2: d.polas[2] || '',
+    antesTxt: d.antes_txt,
+    ahoraTxt: d.ahora_txt,
+    gracias: d.gracias.join('\n'),
+    cancion: d.cancion || '',
+    cancionNombre: d.cancion_nombre,
+    regaloTitulo: d.regalo_titulo,
+    regaloDetalle: d.regalo_detalle,
+    entrega,
+    fecha,
+    vistaPrevia: VISTAS_PREVIAS.some((v) => v.clave === d.vista_previa) ? (d.vista_previa as ClaveVistaPrevia) : 'sonido',
+  }
+  const fotos: Fotos = { ...SIN_FOTOS, pila: [] }
+  const audios: AudioArmado[] = []
+  for (const a of e.archivos) {
+    if (a.tipo === 'audio') {
+      audios.push({ id: a.id, url: a.url, seg: a.seg, quien: a.quien })
+      continue
+    }
+    const f: FotoArmado = { id: a.id, url: a.url, ancho: a.ancho || 0, alto: a.alto || 0 }
+    if (a.rol === 'pila') fotos.pila.push(f)
+    else if (a.rol in fotos) fotos[a.rol as LugarFoto] = f
+  }
+  return { b, fotos, audios }
+}
+
+/** Los ids de las fotos y audios guardados que siguen en el armado. */
+export function idsPresentes(f: Fotos, audios: AudioArmado[]): Set<string> {
+  const ids = [
+    ...(['principal', 'p0', 'p1', 'p2', 'antes', 'ahora'] as const).map((k) => f[k]?.id),
+    ...f.pila.map((x) => x.id),
+    ...audios.map((a) => a.id),
+  ]
+  return new Set(ids.filter((x): x is string => !!x))
 }

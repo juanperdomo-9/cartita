@@ -3,8 +3,9 @@ import { useState, type FormEvent } from 'react'
 import { useParams } from 'react-router'
 import { sumarMensaje, verParaFamilia, type PedidoArchivo } from '../api/cartas'
 import Audios from '../armar/Audios'
+import type { AudioArmado } from '../armar/borrador'
 import { ConCursiva, Marca, useToast } from '../components/comunes'
-import { comprimir, mimeDe, type AudioListo, type FotoLista } from '../lib/archivos'
+import { comprimir, mimeDe, type FotoLista } from '../lib/archivos'
 import { esPlural } from '../lib/texto'
 import { ocasionActiva } from '../ocasiones'
 
@@ -16,7 +17,7 @@ export default function Familia() {
   const [nombre, setNombre] = useState('')
   const [texto, setTexto] = useState('')
   const [foto, setFoto] = useState<FotoLista | null>(null)
-  const [audios, setAudios] = useState<AudioListo[]>([])
+  const [audios, setAudios] = useState<AudioArmado[]>([])
   const [errores, setErrores] = useState<{ nombre?: string; texto?: string }>({})
   const [estado, setEstado] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -37,7 +38,7 @@ export default function Familia() {
         archivo: foto.blob,
         pedido: { tipo: 'foto', mime: 'image/jpeg', bytes: foto.blob.size, ancho: foto.ancho, alto: foto.alto },
       })
-    if (audios[0])
+    if (audios[0]?.blob)
       archivos.push({
         archivo: audios[0].blob,
         pedido: { tipo: 'audio', mime: mimeDe(audios[0].blob), bytes: audios[0].blob.size, duracion_seg: audios[0].seg },
