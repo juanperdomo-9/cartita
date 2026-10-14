@@ -125,8 +125,9 @@ export default function Seguimiento() {
           <Link className="btn vidrio" to={'/e/' + token + '/editar'}>
             Editar la carta
           </Link>
-          <button type="button" className="btn vidrio" onClick={() => q.refetch()}>
-            Actualizar
+          {/* Solo vuelve a cargar el seguimiento: para cambiar la carta está "Editar la carta" */}
+          <button type="button" className="btn vidrio" onClick={() => q.refetch()} disabled={q.isFetching}>
+            {q.isFetching ? 'Buscando…' : 'Ver novedades'}
           </button>
           <button type="button" className="btn vidrio" onClick={() => copiarLink('fam', link('/s/' + s.token_familia))}>
             {copiado === 'fam' ? '¡Copiado!' : 'Copiar link para la familia'}

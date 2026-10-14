@@ -51,6 +51,11 @@ def crear_app() -> FastAPI:
     return app
 
 
+# La página se pide siempre de nuevo: así, después de cada deploy, nadie se queda con la versión
+# vieja. Los archivos de /assets tienen el hash en el nombre y se pueden guardar sin problema.
+SIN_CACHE = {"Cache-Control": "no-cache"}
+
+
 def servir_frontend(app: FastAPI, settings: Settings) -> None:
     """Un solo servicio: la API y la web compilada (React) salen del mismo lugar.
 
@@ -68,7 +73,8 @@ def servir_frontend(app: FastAPI, settings: Settings) -> None:
         clave = db.scalar(
             select(Carta.vista_previa).where(Carta.slug == slug, Carta.estado == "publicada")
         )
-        return HTMLResponse(con_vista_previa(index, clave or POR_DEFECTO, settings.frontend_url))
+        pagina = con_vista_previa(index, clave or POR_DEFECTO, settings.frontend_url)
+        return HTMLResponse(pagina, headers=SIN_CACHE)
 
     @app.get("/{ruta:path}", include_in_schema=False)
     def web(ruta: str):
@@ -80,7 +86,7 @@ def servir_frontend(app: FastAPI, settings: Settings) -> None:
         # Un archivo que no existe (imagen, ícono…) es 404; las rutas de la web, index.html.
         if "." in ruta.rsplit("/", 1)[-1]:
             raise HTTPException(404, "No existe.")
-        return HTMLResponse(index)
+        return HTMLResponse(index, headers=SIN_CACHE)
 
 
 app = crear_app()

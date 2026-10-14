@@ -23,6 +23,7 @@ def test_sirve_la_web_y_la_api(tmp_path, monkeypatch):
             assert r.status_code == 200 and 'id="root"' in r.text
             assert "https://cartita.onrender.com/og.png" in r.text
             assert r.headers["X-Robots-Tag"] == "noindex"
+            assert r.headers["Cache-Control"] == "no-cache"
         assert cliente.get("/assets/app.js").text == "console.log(1)"
         assert cliente.get("/og.png").content == b"\x89PNG"
         assert cliente.get("/health").json() == {"estado": "ok"}
