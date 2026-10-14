@@ -52,10 +52,19 @@ class Settings(BaseSettings):
                 return "postgresql+psycopg://" + valor.removeprefix(prefijo)
         return valor
 
-    @field_validator("frontend_url", "app_base_url", "supabase_url")
+    @field_validator("frontend_url", "app_base_url")
     @classmethod
     def sin_barra_final(cls, valor: str) -> str:
         return valor.rstrip("/")
+
+    @field_validator("supabase_url")
+    @classmethod
+    def solo_el_proyecto(cls, valor: str) -> str:
+        """Acepta la URL con `/rest/v1/` (como la muestra Supabase) y deja solo el dominio."""
+        valor = valor.strip().rstrip("/")
+        for sufijo in ("/rest/v1", "/storage/v1"):
+            valor = valor.removesuffix(sufijo)
+        return valor
 
     @model_validator(mode="after")
     def url_de_render(self) -> "Settings":

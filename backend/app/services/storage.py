@@ -36,7 +36,7 @@ class Subida:
 class Almacen(Protocol):
     def firmar_subida(self, ruta: str, mime: str) -> Subida: ...
     def firmar_lecturas(self, rutas: list[str]) -> dict[str, str]: ...
-    def leer(self, ruta: str) -> bytes | None: ...
+    def inicio(self, ruta: str) -> tuple[bytes, int] | None: ...
     def borrar(self, rutas: list[str]) -> None: ...
 
 
@@ -49,7 +49,7 @@ class AlmacenSupabase:
         self.headers = {"apikey": clave}
         if not clave.startswith("sb_secret_"):
             self.headers["Authorization"] = f"Bearer {clave}"
-        self.cliente = httpx.Client(timeout=20, headers=self.headers)
+        self.cliente = httpx.Client(timeout=httpx.Timeout(20, connect=10), headers=self.headers)
 
     def _ruta(self, ruta: str) -> str:
         return f"{self.bucket}/{quote(ruta)}"
@@ -73,12 +73,18 @@ class AlmacenSupabase:
             if d.get("signedURL") and not d.get("error")
         }
 
-    def leer(self, ruta: str) -> bytes | None:
-        r = self.cliente.get(f"{self.base}/object/{self._ruta(ruta)}")
-        if r.status_code in (400, 404):
+    def inicio(self, ruta: str) -> tuple[bytes, int] | None:
+        """Los primeros bytes y el tamaño total, sin bajar el archivo entero."""
+        r = self.cliente.get(
+            f"{self.base}/object/{self._ruta(ruta)}", headers={"Range": "bytes=0-31"}
+        )
+        if r.status_code in (400, 404, 416):
             return None
         r.raise_for_status()
-        return r.content
+        total = r.headers.get("content-range", "").rpartition("/")[2]
+        if r.status_code == 206 and total.isdigit():
+            return r.content[:32], int(total)
+        return r.content[:32], len(r.content)
 
     def borrar(self, rutas: list[str]) -> None:
         if rutas:
@@ -119,9 +125,12 @@ class AlmacenLocal:
     def firmar_lecturas(self, rutas: list[str]) -> dict[str, str]:
         return {ruta: self._url("ver", ruta, DURACION_LECTURA) for ruta in rutas}
 
-    def leer(self, ruta: str) -> bytes | None:
+    def inicio(self, ruta: str) -> tuple[bytes, int] | None:
         destino = self.archivo(ruta)
-        return destino.read_bytes() if destino.exists() else None
+        if not destino.exists():
+            return None
+        with destino.open("rb") as f:
+            return f.read(32), destino.stat().st_size
 
     def borrar(self, rutas: list[str]) -> None:
         for ruta in rutas:

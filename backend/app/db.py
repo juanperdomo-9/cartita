@@ -12,7 +12,8 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import get_settings
 
-CONNECT_ARGS = {"prepare_threshold": None}
+# connect_timeout: si el pooler no contesta, mejor un error que un pedido colgado.
+CONNECT_ARGS = {"prepare_threshold": None, "connect_timeout": 10}
 
 
 def crear_engine(url: str) -> Engine:
@@ -21,6 +22,7 @@ def crear_engine(url: str) -> Engine:
         connect_args=CONNECT_ARGS,
         pool_pre_ping=True,
         pool_size=5,
+        pool_timeout=15,
         max_overflow=5,
     )
 

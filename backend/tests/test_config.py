@@ -18,3 +18,8 @@ def test_engine_sin_prepared_statements():
     assert engine.dialect.driver == "psycopg"
     assert CONNECT_ARGS["prepare_threshold"] is None
     engine.dispose()
+
+
+def test_supabase_url_sin_rest_v1():
+    s = Settings(supabase_url="https://abc.supabase.co/rest/v1/")
+    assert s.supabase_url == "https://abc.supabase.co"

@@ -185,16 +185,17 @@ def confirmar_archivo(
         return {"confirmado": True}
 
     almacen = get_almacen()
-    datos = almacen.leer(archivo.ruta)
-    if datos is None:
+    leido = almacen.inicio(archivo.ruta)
+    if leido is None:
         raise HTTPException(409, "El archivo todavía no se subió.")
+    cabeza, tamano = leido
     maximo = reglas.MAX_FOTO if archivo.tipo == "foto" else reglas.MAX_AUDIO
-    if len(datos) > maximo or not reglas.contenido_valido(archivo.tipo, archivo.mime, datos[:16]):
+    if tamano > maximo or not reglas.contenido_valido(archivo.tipo, archivo.mime, cabeza[:16]):
         almacen.borrar([archivo.ruta])
         db.delete(archivo)
         db.commit()
         raise HTTPException(422, "Ese archivo no es válido o pesa demasiado.")
-    archivo.bytes = len(datos)
+    archivo.bytes = tamano
     archivo.confirmado = True
     db.commit()
     return {"confirmado": True}
