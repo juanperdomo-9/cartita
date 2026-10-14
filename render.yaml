@@ -6,6 +6,8 @@ services:
     name: cartita
     runtime: docker
     plan: free
+    # Misma zona que la base de Supabase (us-west-2, Oregon): menos demora en cada pedido
+    region: oregon
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health
     envVars:
