@@ -82,6 +82,14 @@ export function cargarBorrador(o: OcasionActiva): Borrador {
   return { ...VACIO }
 }
 
+export function borrarBorrador(o: OcasionActiva) {
+  try {
+    localStorage.removeItem(clave(o))
+  } catch {
+    /* nada */
+  }
+}
+
 export function guardarBorrador(o: OcasionActiva, b: Borrador) {
   try {
     localStorage.setItem(clave(o), JSON.stringify(b))

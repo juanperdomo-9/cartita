@@ -37,11 +37,19 @@ export function leerCancion(link: string): Cancion | { error: string } | null {
 export const urlCancion = (c: Cancion) =>
   c.tipo === 'youtube' ? 'https://www.youtube.com/watch?v=' + c.id : 'https://open.spotify.com/track/' + c.id
 
-// YouTube: https://developers.google.com/youtube/player_parameters (autoplay, playsinline).
-// Spotify: https://developer.spotify.com/documentation/embeds (sin sesión suena un fragmento).
+// YouTube: https://developers.google.com/youtube/player_parameters
+//   autoplay, playsinline; loop=1 necesita playlist=ID para repetir un solo video;
+//   enablejsapi=1 + origin permiten bajar el volumen y silenciar con postMessage.
+// Spotify: https://developer.spotify.com/documentation/embeds
+//   Sin sesión de Spotify en ese navegador suena solo un fragmento de 30 segundos.
 export const embedCancion = (c: Cancion) =>
   c.tipo === 'youtube'
-    ? 'https://www.youtube-nocookie.com/embed/' + c.id + '?autoplay=1&playsinline=1&rel=0'
+    ? 'https://www.youtube-nocookie.com/embed/' +
+      c.id +
+      '?autoplay=1&playsinline=1&rel=0&loop=1&playlist=' +
+      c.id +
+      '&enablejsapi=1&origin=' +
+      encodeURIComponent(location.origin)
     : 'https://open.spotify.com/embed/track/' + c.id + '?theme=0'
 
 export const nombreServicio = (c: Cancion) => (c.tipo === 'youtube' ? 'YouTube' : 'Spotify')

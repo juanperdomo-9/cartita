@@ -249,3 +249,9 @@
 .panel img{display:block;justify-self:center;max-width:100%;max-height:52cqh;border-radius:14px;box-shadow:0 20px 40px -18px #000}
 .ok-txt{font-size:14px;color:#9fdcae;min-height:20px}
 
+
+/* Canción real (no está en el prototipo, que usaba EMBEBER = false): el reproductor vive fuera
+   de las pantallas para seguir sonando toda la carta. Ver ubicarCancion() en motor.ts. */
+.musica-fija{position:absolute;z-index:6;overflow:hidden;border-radius:12px;transition:opacity .4s}
+.musica-fija iframe{display:block;width:100%;height:100%;border:0}
+.musica-fija.escondida{opacity:0;pointer-events:none}

@@ -13,6 +13,7 @@ import {
   abreDesde,
   aCrear,
   aVistaPrevia,
+  borrarBorrador,
   cargarBorrador,
   guardarBorrador,
   lineasGracias,
@@ -92,6 +93,12 @@ export default function Armar({ ocasion }: { ocasion: OcasionActiva }) {
   const ponerFoto = (k: LugarFoto, f: FotoLista | null) => {
     setFotos((x) => ({ ...x, [k]: f }))
     olvidarCreacion()
+  }
+
+  // Terminar: se borra el borrador y vuelve a la portada (la carta queda en "Tus cartas").
+  const terminar = () => {
+    borrarBorrador(ocasion)
+    navegar(ocasion.ruta)
   }
 
   const cancion = leerCancion(b.cancion)
@@ -517,6 +524,12 @@ export default function Armar({ ocasion }: { ocasion: OcasionActiva }) {
         <p className={'msg' + (cancion && !cancionError ? ' ok' : '')}>
           {!cancion ? '' : cancionError || 'Listo: canción de ' + nombreServicio(cancion as Exclude<typeof cancion, { error: string }>) + '.'}
         </p>
+        {cancion && !cancionError && 'tipo' in cancion && cancion.tipo === 'spotify' && (
+          <p className="ayuda">
+            Ojo: si ella no tiene Spotify abierto en el celular, Spotify deja escuchar solo 30 segundos. Con un link de
+            YouTube suena el tema entero durante toda la carta.
+          </p>
+        )}
       </div>
       <div className="consejo">
         <b>Cómo copiar el link</b>
@@ -617,7 +630,7 @@ export default function Armar({ ocasion }: { ocasion: OcasionActiva }) {
       <p className="estado" aria-live="polite">
         {estado}
       </p>
-      {lista && <Resultado carta={lista} b={b} ocasion={ocasion} refe={resultado} />}
+      {lista && <Resultado carta={lista} b={b} ocasion={ocasion} refe={resultado} onTerminar={terminar} />}
     </>,
   ]
 
@@ -653,8 +666,13 @@ export default function Armar({ ocasion }: { ocasion: OcasionActiva }) {
             <button type="button" className="btn vidrio" onClick={abrirPrevia}>
               Ver cómo queda
             </button>
-            <button type="button" className={'btn' + (n === TOTAL ? ' rosa' : '')} onClick={derecha} disabled={creando}>
-              {n < TOTAL ? (n === TOTAL - 1 ? 'Revisar' : 'Siguiente') : lista ? 'Ver los links' : 'Crear mi link'}
+            <button
+              type="button"
+              className={'btn' + (n === TOTAL ? ' rosa' : '')}
+              onClick={n === TOTAL && lista ? terminar : derecha}
+              disabled={creando}
+            >
+              {n < TOTAL ? (n === TOTAL - 1 ? 'Revisar' : 'Siguiente') : lista ? 'Terminar' : 'Crear mi link'}
             </button>
           </div>
         </div>
@@ -771,11 +789,13 @@ function Resultado({
   b,
   ocasion,
   refe,
+  onTerminar,
 }: {
   carta: CartaCreada
   b: Borrador
   ocasion: OcasionActiva
   refe: RefObject<HTMLDivElement | null>
+  onTerminar: () => void
 }) {
   const base = location.origin
   const link = base + '/c/' + carta.slug,
@@ -822,6 +842,12 @@ function Resultado({
           Guardate este último link (por ejemplo, mandátelo a vos por WhatsApp). Es la única forma de ver el seguimiento: si
           borrás los datos del navegador o cambiás de celular, sin él lo perdés.
         </p>
+      </div>
+      <div className="bloque-link">
+        <p className="nota">¿Ya mandaste todo? Terminá y volvé al inicio: la carta queda guardada en “Tus cartas”.</p>
+        <button type="button" className="btn chico rosa" style={{ justifySelf: 'start' }} onClick={onTerminar}>
+          Terminar
+        </button>
       </div>
     </div>
   )

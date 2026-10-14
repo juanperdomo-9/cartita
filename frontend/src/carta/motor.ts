@@ -4,7 +4,7 @@
 // avisan con `onEvento`, la cuenta regresiva usa la hora del servidor y la canción usa el
 // reproductor real de YouTube o Spotify (EMBEBER = true).
 
-import { embedCancion } from '../lib/cancion'
+import { embedCancion, type Cancion } from '../lib/cancion'
 import { azar, fuenteMuestra, imagenMuestra, ramoSVG, type Muestra } from '../lib/muestras'
 import { esPlural, fechaLinda, marcar, mmss } from '../lib/texto'
 import { ocasionActiva, type OcasionActiva, type Voces } from '../ocasiones'
@@ -125,6 +125,11 @@ export class MotorCarta {
   private sonando: HTMLElement | null = null
   private finAudio = 0
   private reproductor: HTMLAudioElement | null = null
+  // canción de YouTube o Spotify: vive fuera de las pantallas para que siga sonando toda la carta
+  private cancionCaja: HTMLElement | null = null
+  private cancionFrame: HTMLIFrameElement | null = null
+  private cancionLugar: HTMLElement | null = null
+  private cancionSlide: HTMLElement | null = null
   // raspadita y final
   private c2d: CanvasRenderingContext2D | null = null
   private raspando = false
@@ -177,6 +182,7 @@ export class MotorCarta {
     this.pararMusica()
     this.pararAudio()
     this.ctx?.close().catch(() => {})
+    this.quitarCancion()
     this.limpiezas.forEach((f) => f())
     this.root.innerHTML = ''
   }
@@ -237,6 +243,7 @@ export class MotorCarta {
   private ir(id: string) {
     this.root.querySelectorAll('.pantalla').forEach((s) => s.classList.toggle('on', s.id === id))
     this.cerrarPaneles()
+    this.ubicarCancion()
   }
 
   private ponerEstilo(v: Estilo) {
@@ -310,9 +317,64 @@ export class MotorCarta {
     clearTimeout(this.bucle)
     this.root.classList.remove('sonido')
     if (this.ctx && this.ctx.state === 'running') this.ctx.suspend()
+    this.quitarCancion()
   }
   private volumen(v: number) {
     if (this.master && this.ctx) this.master.gain.setTargetAtTime(v, this.ctx.currentTime, 0.2)
+    this.youtube('setVolume', [Math.round(v * 100)])
+  }
+
+  // ---------- canción real (YouTube o Spotify) ----------
+  // El reproductor se crea una sola vez, fuera de las pantallas: mover un iframe lo recarga.
+  // En la pantalla de la canción se ubica sobre su lugar; en el resto queda invisible y sigue
+  // sonando. YouTube además se repite, así dura toda la carta.
+  private ponerCancion(c: Cancion, lugar: HTMLElement, slide: HTMLElement) {
+    if (this.cancionCaja) return
+    if (c.tipo === 'youtube') lugar.style.aspectRatio = '16 / 9'
+    else lugar.style.height = '80px'
+    const caja = el('div', 'musica-fija'),
+      fr = document.createElement('iframe')
+    fr.src = embedCancion(c)
+    fr.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture'
+    fr.title = 'Reproductor de la canción'
+    caja.append(fr)
+    this.root.append(caja)
+    this.cancionCaja = caja
+    this.cancionFrame = c.tipo === 'youtube' ? fr : null
+    this.cancionLugar = lugar
+    this.cancionSlide = slide
+    if (c.tipo === 'youtube') this.root.classList.add('sonido')
+    slide.addEventListener('scroll', this.ubicarCancion)
+    this.ubicarCancion()
+  }
+  private ubicarCancion = () => {
+    const caja = this.cancionCaja
+    if (!caja || !this.cancionLugar || !this.cancionSlide) return
+    const visible = this.cancionSlide.classList.contains('on') && this.$('p-historia').classList.contains('on')
+    if (visible) {
+      const r = this.cancionLugar.getBoundingClientRect(),
+        b = this.root.getBoundingClientRect()
+      caja.style.left = r.left - b.left + 'px'
+      caja.style.top = r.top - b.top + 'px'
+      caja.style.width = r.width + 'px'
+      caja.style.height = r.height + 'px'
+    }
+    caja.classList.toggle('escondida', !visible)
+  }
+  private quitarCancion() {
+    if (!this.cancionCaja) return
+    this.cancionSlide?.removeEventListener('scroll', this.ubicarCancion)
+    this.cancionCaja.remove()
+    this.cancionCaja = this.cancionFrame = this.cancionLugar = null
+    // La pantalla de la canción vuelve a mostrar "Dale play"
+    this.cancionSlide?.querySelector('.disco')?.classList.remove('gira')
+    const play = this.cancionSlide?.querySelector<HTMLElement>('.btn.rosa')
+    if (play) play.hidden = false
+    this.cancionSlide = null
+  }
+  /** Órdenes al reproductor de YouTube (enablejsapi=1). Spotify no las acepta. */
+  private youtube(func: string, args: unknown[] = []) {
+    this.cancionFrame?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), '*')
   }
 
   // ---------- audios dentro de la carta ----------
@@ -436,20 +498,12 @@ export class MotorCarta {
         sg = el('button', 'btn vidrio', 'Seguir')
       play.type = sg.type = 'button'
       play.insertAdjacentHTML('afterbegin', PLAY)
+      const slideCancion = s
       play.addEventListener('click', () => {
         disco.classList.add('gira')
         play.hidden = true
-        if (EMBEBER && d.cancion) {
-          const fr = document.createElement('iframe')
-          fr.src = embedCancion(d.cancion)
-          fr.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture'
-          fr.title = 'Reproductor de la canción'
-          fr.loading = 'lazy'
-          if (d.cancion.tipo === 'youtube') fr.style.aspectRatio = '16 / 9'
-          else fr.height = '80'
-          rep.textContent = ''
-          rep.append(fr)
-        } else this.musica()
+        if (EMBEBER && d.cancion) this.ponerCancion(d.cancion, rep, slideCancion)
+        else this.musica()
       })
       sg.addEventListener('click', adelante)
       fila.append(play, sg)
@@ -812,6 +866,7 @@ export class MotorCarta {
       }, 1500)
     }
     if (d) this.programar(d)
+    this.ubicarCancion()
   }
   private adelante() {
     if (this.actual < this.slides.length - 1) this.mostrar(this.actual + 1)
@@ -1099,7 +1154,10 @@ export class MotorCarta {
       $('mute').setAttribute('aria-pressed', String(this.muda))
       $('mute').setAttribute('aria-label', this.muda ? 'Activar la música' : 'Silenciar la música')
       if (!this.muda) this.melodia()
+      this.youtube(this.muda ? 'mute' : 'unMute')
     })
+    window.addEventListener('resize', this.ubicarCancion)
+    this.limpiezas.push(() => window.removeEventListener('resize', this.ubicarCancion))
     this.escuchar(document, 'visibilitychange', () => {
       if (this.ctx && this.root.classList.contains('sonido')) {
         if (document.hidden) this.ctx.suspend()
