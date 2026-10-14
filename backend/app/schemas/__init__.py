@@ -17,6 +17,7 @@ def Texto(maximo: int, minimo: int = 0):  # noqa: N802 (se usa como tipo)
 
 
 Estilo = Literal["papel", "bordo"]
+VistaPrevia = Literal["sonido", "para_vos", "mira", "ratito"]
 Rol = Literal["principal", "p0", "p1", "p2", "antes", "ahora", "pila", "audio_autor"]
 TipoArchivo = Literal["foto", "audio"]
 
@@ -41,6 +42,7 @@ class CartaCrear(BaseModel):
     regalo_titulo: Texto(36) = ""
     regalo_detalle: Texto(50) = ""
     estilo: Estilo = "papel"
+    vista_previa: VistaPrevia = "sonido"
     abre_desde: datetime | None = None
 
     @field_validator("gracias")

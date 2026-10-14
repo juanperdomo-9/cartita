@@ -6,6 +6,7 @@ import { ICONO_EQUIS, Marca, copiar, useToast } from '../components/comunes'
 import { comprimir, guardarMia, mimeDe, type AudioListo, type FotoLista } from '../lib/archivos'
 import { leerCancion, nombreServicio } from '../lib/cancion'
 import { esPlural, fechaLinda } from '../lib/texto'
+import { tituloVistaPrevia, VISTAS_PREVIAS } from '../lib/vistaPrevia'
 import type { OcasionActiva } from '../ocasiones'
 import Audios from './Audios'
 import {
@@ -588,6 +589,25 @@ export default function Armar({ ocasion }: { ocasion: OcasionActiva }) {
           <p className="msg">{errores.fecha}</p>
         </div>
       )}
+      <div className="campo">
+        <span className="lbl">¿Qué ve cuando le llega el link?</span>
+        <p className="ayuda">
+          Es lo que muestra WhatsApp abajo del link. Nunca dice su nombre ni que es un regalo: así no le arruinás la sorpresa.
+        </p>
+        <div className="sugerencias">
+          {VISTAS_PREVIAS.map((v) => (
+            <button
+              type="button"
+              key={v.clave}
+              className={'sug' + (b.vistaPrevia === v.clave ? ' puesta' : '')}
+              aria-pressed={b.vistaPrevia === v.clave}
+              onClick={() => cambiar('vistaPrevia', v.clave)}
+            >
+              {v.titulo}
+            </button>
+          ))}
+        </div>
+      </div>
     </>,
 
     // 11. Revisá y creá el link
@@ -701,7 +721,11 @@ function Resumen({
       'El regalo',
       b.regaloTitulo.trim() ? 'Vale por ' + b.regaloTitulo.trim().charAt(0).toLowerCase() + b.regaloTitulo.trim().slice(1) : 'Un abrazo enorme (de ejemplo)',
     ],
-    [true, 'Cuándo la abre', abre ? 'Desde el ' + fechaLinda(abre) : 'Apenas le llegue'],
+    [
+      true,
+      'Cuándo la abre',
+      (abre ? 'Desde el ' + fechaLinda(abre) : 'Apenas le llegue') + ' · en WhatsApp dice “' + tituloVistaPrevia(b.vistaPrevia) + '”',
+    ],
   ]
   return (
     <ul className="resumen">

@@ -35,6 +35,9 @@ class Carta(Base):
         CheckConstraint(
             "cancion_tipo IS NULL OR cancion_tipo IN ('youtube', 'spotify')", name="cancion_tipo"
         ),
+        CheckConstraint(
+            "vista_previa IN ('sonido', 'para_vos', 'mira', 'ratito')", name="vista_previa"
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), **PK_UUID)
@@ -66,6 +69,8 @@ class Carta(Base):
     regalo_titulo: Mapped[str] = mapped_column(String(36), nullable=False, server_default="")
     regalo_detalle: Mapped[str] = mapped_column(String(50), nullable=False, server_default="")
     estilo: Mapped[str] = mapped_column(String(10), nullable=False, server_default="papel")
+    # Frase de la vista previa de WhatsApp (ver app/vista_previa.py)
+    vista_previa: Mapped[str] = mapped_column(String(20), nullable=False, server_default="sonido")
     # null = se puede abrir apenas le llegue
     abre_desde: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 

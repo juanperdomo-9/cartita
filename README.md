@@ -71,7 +71,7 @@ Notas del plan free: el servicio se duerme después de 15 minutos sin visitas y 
 Con la versión publicada (HTTPS), en un iPhone y en un Android:
 
 1. Armar una carta completa desde el celular: fotos verticales y horizontales, 2 audios (uno grabado y uno subido), canción de YouTube y de Spotify.
-2. Abrir el link de ella desde WhatsApp (no copiado): que la vista previa diga "Tenés una carta 💌" sin nombres ni fotos.
+2. Abrir el link de ella desde WhatsApp (no copiado): que la vista previa muestre la frase elegida y la imagen abstracta, sin nombres, fotos ni pistas de que es un regalo.
 3. Recorrer la carta: sobre con sonido, historia (tocar izquierda/derecha, mantener apretado para pausar), antes y ahora con el dedo, raspadita, abrazos, "Contestale" e imagen para el estado (que se comparta directo).
 4. **Audios cruzados:** un audio grabado en Android tiene que escucharse en iPhone, y al revés.
 5. Probar con fecha de apertura en 5 minutos: antes no se ve nada, y al llegar a cero aparece "¡Ya la podés abrir!".

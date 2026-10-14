@@ -25,6 +25,7 @@ export interface CartaCrear {
   regalo_titulo: string
   regalo_detalle: string
   estilo: Estilo
+  vista_previa: string
   abre_desde: string | null
 }
 

@@ -1,10 +1,17 @@
-from fastapi import FastAPI, HTTPException, Request
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
+from app.db import get_db
+from app.models import Carta
 from app.routers import almacen, cartas, familia, publica, seguimiento
+from app.vista_previa import POR_DEFECTO, con_vista_previa
 
 
 def crear_app() -> FastAPI:
@@ -54,6 +61,14 @@ def servir_frontend(app: FastAPI, settings: Settings) -> None:
     index = (dist / "index.html").read_text(encoding="utf-8")
     index = index.replace("%VITE_SITIO_URL%", settings.frontend_url)
     app.mount("/assets", StaticFiles(directory=dist / "assets"), name="assets")
+
+    @app.get("/c/{slug}", include_in_schema=False)
+    def carta_de_ella(slug: str, db: Annotated[Session, Depends(get_db)]) -> HTMLResponse:
+        # La vista previa de WhatsApp del link de ella: la frase neutra que eligió quien la armó.
+        clave = db.scalar(
+            select(Carta.vista_previa).where(Carta.slug == slug, Carta.estado == "publicada")
+        )
+        return HTMLResponse(con_vista_previa(index, clave or POR_DEFECTO, settings.frontend_url))
 
     @app.get("/{ruta:path}", include_in_schema=False)
     def web(ruta: str):

@@ -4,6 +4,7 @@
 import type { CartaCrear } from '../api/cartas'
 import type { CartaVista, Estilo } from '../carta/tipos'
 import type { AudioListo, FotoLista } from '../lib/archivos'
+import { VISTAS_PREVIAS, type ClaveVistaPrevia } from '../lib/vistaPrevia'
 import { leerCancion } from '../lib/cancion'
 import type { OcasionActiva } from '../ocasiones'
 
@@ -29,6 +30,7 @@ export interface Borrador {
   regaloDetalle: string
   entrega: 'ya' | 'dia' | 'otra'
   fecha: string
+  vistaPrevia: ClaveVistaPrevia
 }
 
 export const VACIO: Borrador = {
@@ -53,6 +55,7 @@ export const VACIO: Borrador = {
   regaloDetalle: '',
   entrega: 'ya',
   fecha: '',
+  vistaPrevia: 'sonido',
 }
 
 export type LugarFoto = 'principal' | 'p0' | 'p1' | 'p2' | 'antes' | 'ahora'
@@ -70,6 +73,7 @@ export function cargarBorrador(o: OcasionActiva): Borrador {
       for (const k of Object.keys(VACIO) as (keyof Borrador)[]) if (typeof d[k] === 'string') (limpio[k] as string) = d[k]
       if (!['ya', 'dia', 'otra'].includes(limpio.entrega)) limpio.entrega = 'ya'
       if (limpio.estilo !== 'bordo') limpio.estilo = 'papel'
+      if (!VISTAS_PREVIAS.some((v) => v.clave === limpio.vistaPrevia)) limpio.vistaPrevia = 'sonido'
       return limpio
     }
   } catch {
@@ -129,6 +133,7 @@ export function aCrear(b: Borrador, o: OcasionActiva): CartaCrear {
     regalo_titulo: b.regaloTitulo.trim(),
     regalo_detalle: b.regaloDetalle.trim(),
     estilo: b.estilo,
+    vista_previa: b.vistaPrevia,
     abre_desde: abreDesde(b, o),
   }
 }

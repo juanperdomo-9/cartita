@@ -77,6 +77,7 @@ def crear_carta(datos: schemas.CartaCrear, db: Db) -> schemas.CartaCreada:
         regalo_titulo=datos.regalo_titulo,
         regalo_detalle=datos.regalo_detalle,
         estilo=datos.estilo,
+        vista_previa=datos.vista_previa,
         abre_desde=datos.abre_desde,
     )
     db.add(carta)
