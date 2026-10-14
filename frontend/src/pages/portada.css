@@ -172,3 +172,7 @@ html.en-portada,html.en-portada body{background:#f3ebdd}
 .pie-papel nav{display:flex;flex-wrap:wrap;gap:16px}
 .pie-papel a{color:var(--p-lapiz)}
 @media (prefers-reduced-motion:reduce){.trazo path{stroke-dashoffset:0;animation:none}.mini-comp,.carrete{animation:none}}
+
+/* Ajuste respecto del prototipo: el subrayado a mano cuelga debajo del título y pisaba el texto
+   de abajo ("(sí, a tu vieja)" en la portada y la bajada en el Inicio). El título le deja lugar. */
+.hero-txt h1,.inicio-hero h1{padding-bottom:.16em}
