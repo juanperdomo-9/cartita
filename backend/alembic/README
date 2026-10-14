@@ -1,0 +1,4 @@
+Migraciones de Cartita (Alembic). La conexión sale de DATABASE_URL.
+
+  uv run alembic revision --autogenerate -m "descripcion"
+  uv run alembic upgrade head
