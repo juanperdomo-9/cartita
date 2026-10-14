@@ -1,0 +1,10 @@
+/* Seguimiento: lista de mensajes de la familia con "Ocultar" (no está en el prototipo;
+   sigue el estilo de .resumen del armado). */
+.mensajes-seg{display:grid;gap:8px}
+.mensaje-seg{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 12px 12px 14px;border-radius:14px;background:rgb(255 255 255 / .04);border:1px solid var(--linea);transition:opacity .2s}
+.mensaje-seg b{display:block;font-size:15px}
+.mensaje-seg span{display:block;font-size:13px;color:var(--suave);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mensaje-seg button{background:none;border:0;color:var(--rosa-claro);font-size:14px;font-weight:600;padding:6px}
+.mensaje-seg.oculto{opacity:.5}
+html:not(.oscuro) .mensaje-seg{background:#fffdf8}
+.resultado .aviso-token{padding:12px 14px;border-radius:12px;background:#fff6dc;border:1px solid #ecd7a6;color:#7a5a12;font-size:14px}

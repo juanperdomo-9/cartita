@@ -1,0 +1,88 @@
+/* Copiado tal cual de prototipo/cartita-prototipo.html (líneas 615-700). No cambiar sin mirar el prototipo. */
+
+/* ===== Temas: claro (papel) y oscuro (bordó) ===== */
+/* La carta define su propia paleta: por defecto bordó; con .estilo-papel, papel */
+.escena{--fondo:#120810;--crema:#fbf3ea;--suave:rgb(251 243 234 / .74);--linea:rgb(251 243 234 / .16);--rosa-claro:#f7c9d6;--oro:#e9b764;--campo:#2a1322;--borde:#4b2642;color:var(--crema)}
+.escena.estilo-papel{--vino:#f1e8d9;--crema:#2a211b;--suave:rgb(42 33 27 / .7);--linea:rgb(42 33 27 / .14);--rosa-claro:#c43c55;--oro:#2346a0;--campo:#fffdf8;--borde:#d8cab4;
+  background:radial-gradient(120% 60% at 50% -6%,#fbf5ea 0%,transparent 60%),#efe5d4}
+@media (min-width:600px) and (min-height:620px){.escena.estilo-papel{box-shadow:0 40px 110px -40px rgb(60 40 20 / .5),0 0 0 1px rgb(42 33 27 / .1)}}
+.escena.estilo-papel::before{mix-blend-mode:multiply;opacity:.22}
+.estilo-papel .btn:not(.rosa):not(.vidrio){background:#2a211b;color:#fcf9f2}
+.estilo-papel .btn.vidrio{background:rgb(255 255 255 / .62)}
+.estilo-papel .barras i{background:rgb(42 33 27 / .14)}
+.estilo-papel .mute,.estilo-papel .cerrar{background:rgb(42 33 27 / .07)}
+.estilo-papel .audio{background:rgb(255 255 255 / .6)}
+.estilo-papel .onda i{background:rgb(42 33 27 / .24)}
+.estilo-papel .cuenta-regresiva .u,.estilo-papel .candado{background:rgb(255 255 255 / .62)}
+.estilo-papel .panel{background:#fcf9f2;box-shadow:0 -20px 60px -10px rgb(60 40 20 / .4)}
+.estilo-papel .velo{background:rgb(60 40 20 / .28)}
+.estilo-papel .ok-txt{color:#2f8a4b}
+.estilo-papel .petalo{opacity:.5}
+.estilo-papel .sombra-ticket{filter:drop-shadow(0 22px 26px rgb(60 40 20 / .35))}
+.estilo-papel .papel,.estilo-papel .pola,.estilo-papel .pf,.estilo-papel .nota-fam,.estilo-papel .marco{box-shadow:0 22px 34px -20px rgb(60 40 20 / .75)}
+.estilo-papel .slide:has(>.foto){--crema:#fbf3ea;--suave:rgb(251 243 234 / .8);--oro:#e9b764;--rosa-claro:#f7c9d6}
+.estilo-papel .slide:has(>.foto) .btn.vidrio{background:rgb(255 255 255 / .12)}
+.estilo-switch{position:absolute;top:14px;left:14px;z-index:5;display:flex;padding:3px;border-radius:999px;background:rgb(127 127 127 / .16);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.estilo-switch button{min-height:32px;padding:0 13px;border:0;border-radius:999px;background:none;color:var(--suave);font-size:13px;font-weight:600}
+.estilo-switch button[aria-pressed="true"]{background:var(--crema);color:var(--vino)}
+
+/* Elegir el estilo en el armado */
+.estilos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.estilo-op{position:relative;display:grid;gap:8px;padding:10px 10px 14px;border-radius:18px;border:1.5px solid var(--linea);cursor:pointer;transition:border-color .2s}
+.estilo-op:has(input:checked){border-color:var(--rosa);box-shadow:0 0 0 3px rgb(238 107 147 / .18)}
+.estilo-op input{position:absolute;opacity:0;pointer-events:none}
+.estilo-op b{font-size:16px;padding-inline:4px}
+.estilo-op small{font-size:13px;color:var(--suave);padding-inline:4px;line-height:1.35}
+.muestra-estilo{display:grid;place-items:center;align-content:center;gap:6px;aspect-ratio:4/3;border-radius:12px;font-family:"Instrument Serif",Georgia,serif;font-size:19px;line-height:1}
+.muestra-estilo.papel{background:#efe5d4;color:#2a211b}
+.muestra-estilo.bordo{background:radial-gradient(120% 70% at 50% -8%,#5a2141,#22101b 70%);color:#fbf3ea}
+.muestra-estilo em{color:#c43c55}.muestra-estilo.bordo em{color:#f7c9d6}
+.muestra-estilo i{width:46px;height:30px;border-radius:3px;background:linear-gradient(to top right,transparent 49%,#e6d2b2 50%) left/50% 100% no-repeat,linear-gradient(to top left,transparent 49%,#e6d2b2 50%) right/50% 100% no-repeat,#f1e3cc;box-shadow:0 6px 10px -6px #000}
+
+/* Botón de tema */
+.tema-btn{flex:none;width:42px;height:42px;display:grid;place-items:center;border-radius:50%;border:1.5px solid currentColor;background:none;color:inherit;cursor:pointer;opacity:.85}
+.tema-btn:hover{opacity:1}
+.tema-btn .sol{display:none}
+html.oscuro .tema-btn .sol{display:block}
+html.oscuro .tema-btn .luna{display:none}
+.marca{gap:10px}
+.marca .ocasion{margin-left:auto}
+.tope-der{display:flex;align-items:center;gap:12px}
+
+/* Armado en modo claro (papel) */
+html:not(.oscuro){--fondo:#f3ebdd;--crema:#2a211b;--suave:rgb(42 33 27 / .68);--linea:rgb(42 33 27 / .14);--campo:#fffdf8;--borde:#d8cab4;--rosa-claro:#b8325c;--oro:#2346a0;color-scheme:light}
+html:not(.oscuro) body{background:#f3ebdd}
+html:not(.oscuro) .armar .btn:not(.rosa):not(.vidrio){background:#2a211b;color:#fcf9f2}
+html:not(.oscuro) .armar .btn.vidrio{background:#fffdf8;box-shadow:inset 0 0 0 1.5px #d8cab4}
+html:not(.oscuro) .progreso i{background:rgb(42 33 27 / .12)}
+html:not(.oscuro) .progreso i.ok{background:var(--rosa)}
+html:not(.oscuro) .atras,html:not(.oscuro) .fila-audio .quitar,html:not(.oscuro) .ocasion{background:rgb(42 33 27 / .07)}
+html:not(.oscuro) .resumen li,html:not(.oscuro) .fila-audio,html:not(.oscuro) .tarjeta,html:not(.oscuro) .opcion,html:not(.oscuro) .sug,html:not(.oscuro) .estilo-op{background:#fffdf8}
+html:not(.oscuro) .resumen .ic{background:rgb(42 33 27 / .1)}
+html:not(.oscuro) .resumen .ic.si{background:var(--rosa)}
+html:not(.oscuro) .campo input::placeholder,html:not(.oscuro) .campo textarea::placeholder{color:rgb(42 33 27 / .4)}
+html:not(.oscuro) .msg.ok{color:#2f8a4b}
+html:not(.oscuro) .campo.error .msg{color:#c0392b}
+html:not(.oscuro) .campo.error input,html:not(.oscuro) .campo.error textarea{border-color:#c0392b}
+html:not(.oscuro) .punto{background:rgb(42 33 27 / .2)}
+html:not(.oscuro) .punto.si{background:#3fa964}
+html:not(.oscuro) .toast{background:#2a211b;color:#fcf9f2}
+html:not(.oscuro) .consejo{background:#fff6dc;border-color:#ecd7a6}
+html:not(.oscuro) .consejo b{color:#9a6b12}
+html:not(.oscuro) .donde{background:rgb(184 50 92 / .1)}
+html:not(.oscuro) .resultado{box-shadow:0 0 0 1px #e6d9c4}
+html:not(.oscuro) .nombres span{background:rgb(42 33 27 / .07)}
+html:not(.oscuro) .subir.con-foto::after{background:rgb(0 0 0 / .55)}
+
+/* Portada en modo oscuro (bordó) */
+html.oscuro.en-portada,html.oscuro.en-portada body{background:#1c0b15}
+html.oscuro .intro{--p-fondo:#1c0b15;--p-tinta:#fbf3ea;--p-lapiz:rgb(251 243 234 / .7);--birome:#f7c9d6;--rojo:#ee6b93;--p-linea:rgb(251 243 234 / .18);color-scheme:dark;
+  background:radial-gradient(90% 700px at 50% -120px,#4b1734,transparent 70%) no-repeat,#1c0b15}
+/* Los objetos siguen siendo de papel aunque la mesa sea oscura */
+.hoja-chica,.polas-mesa,.cassette,.notas-mesa,.ticket-mesa,.almanaque,.cuaderno,.acuse,.intro .mias a{--birome:#2346a0;--p-tinta:#2a211b;--rojo:#cf3f45;--p-lapiz:#6d6157;--p-linea:#dccfbc;--p-papel:#fcf9f2}
+html.oscuro .mancha{opacity:0}
+html.oscuro .matasellos{color:rgb(42 33 27 / .55)}
+html.oscuro .armar.ancho .barra{background:linear-gradient(to top,#1c0b15 64%,rgb(28 11 21 / 0))}
+html.oscuro .armar.ancho .barra .btn{border-color:#fbf3ea;box-shadow:3px 4px 0 #fbf3ea}
+html.oscuro .armar.ancho .barra .btn.vidrio{background:#2a1322;color:#fbf3ea}
+html.oscuro .armar.ancho .barra .btn:not(.vidrio){background:#ee6b93}

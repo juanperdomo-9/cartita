@@ -1,14 +1,20 @@
 import { Link } from 'react-router'
-import './Inicio.css'
+import { Marca } from '../components/comunes'
 
 export default function NoEncontrada() {
   return (
-    <main className="inicio base-inicio">
-      <h1 className="base-titulo">Uy</h1>
-      <p className="base-nota">esta página no existe</p>
-      <Link to="/" className="base-sello">
-        volver al inicio
-      </Link>
+    <main className="armar">
+      <Marca />
+      <section className="pagina">
+        <p className="eyebrow">Uy</p>
+        <h1 className="titulo">
+          Esta página <em>no existe.</em>
+        </h1>
+        <p className="explica">Revisá que el link esté completo.</p>
+        <Link className="btn rosa" to="/" style={{ justifySelf: 'start' }}>
+          Ir al inicio
+        </Link>
+      </section>
     </main>
   )
 }

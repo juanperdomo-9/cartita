@@ -109,6 +109,9 @@ Nunca subir secretos al repo. Mantener un `.env.example` actualizado.
 | `TOKEN_PEPPER` | Secreto que se mezcla al guardar el hash de los tokens |
 | `APP_BASE_URL` | URL pública del backend |
 | `FRONTEND_URL` | URL pública del frontend (para armar los links y para CORS) |
+| `VITE_API_URL` | URL del backend, para el frontend (se mete en el build) |
+| `VITE_SITIO_URL` | URL pública del frontend, para la imagen de la vista previa de WhatsApp |
+| `ENTORNO` | `produccion` en Render (exige `TOKEN_PEPPER` y `SUPABASE_URL`) |
 | `PAGOS_ACTIVOS` | `false` en la etapa 1 |
 | `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET` | Solo etapa 2 |
 
@@ -235,23 +238,23 @@ Detalles que vienen del prototipo y hay que mantener:
 ## Fases
 
 **Fase 0: base del proyecto**
-- [ ] Estructura de carpetas, uv, Vite, ruff, pytest, `.env.example`
+- [x] Estructura de carpetas, uv, Vite, ruff, pytest, `.env.example`
 - [ ] Proyecto de Supabase, conexión por el pooler, Alembic, bucket privado `cartas`
 - [ ] Deploy inicial en Render (backend y frontend con reescritura a `index.html`)
 
 **Fase 1: Cartita gratis para amigos**
-- [ ] Modelo de datos y migraciones
-- [ ] API: crear carta, subir y confirmar archivos, publicar
-- [ ] Configuración por ocasión (frontend y backend), con Día de la Madre como primera
-- [ ] Inicio con todas las ocasiones (solo Día de la Madre activa, el resto "Próximamente")
-- [ ] Portada de Día de la Madre en `/dia-de-la-madre` (porting del prototipo)
-- [ ] Armado paso a paso (porting del prototipo, con borrador en el navegador)
-- [ ] La carta completa (porting del prototipo) con cuenta regresiva del lado del backend
-- [ ] Canción con reproductor real
-- [ ] Link de la familia
-- [ ] Seguimiento: lecturas, abrazos, respuesta, ocultar mensajes
-- [ ] Grabar audio desde el celular e imagen para el estado con `navigator.share`
-- [ ] Límites por IP, `noindex` y vista previa genérica para WhatsApp
+- [x] Modelo de datos y migraciones
+- [x] API: crear carta, subir y confirmar archivos, publicar
+- [x] Configuración por ocasión (frontend y backend), con Día de la Madre como primera
+- [x] Inicio con todas las ocasiones (solo Día de la Madre activa, el resto "Próximamente")
+- [x] Portada de Día de la Madre en `/dia-de-la-madre` (porting del prototipo)
+- [x] Armado paso a paso (porting del prototipo, con borrador en el navegador)
+- [x] La carta completa (porting del prototipo) con cuenta regresiva del lado del backend
+- [x] Canción con reproductor real
+- [x] Link de la familia
+- [x] Seguimiento: lecturas, abrazos, respuesta, ocultar mensajes
+- [x] Grabar audio desde el celular e imagen para el estado con `navigator.share`
+- [x] Límites por IP, `noindex` y vista previa genérica para WhatsApp
 - [ ] Prueba completa en iPhone y Android reales
 
 **Fase 2: cobro** (ver "Etapa 2")

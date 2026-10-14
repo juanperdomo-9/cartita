@@ -1,65 +1,29 @@
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
+/* Copiado tal cual de prototipo/cartita-prototipo.html (líneas 23-30, 50-60, 203-205). No cambiar sin mirar el prototipo. */
 
-html,
-body {
-  margin: 0;
-  min-height: 100%;
-}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:100%;background:var(--fondo)}
+body{margin:0;min-height:100%;background:radial-gradient(90% 900px at 50% 0%,#2a1222,var(--fondo)) no-repeat,var(--fondo);color:var(--crema);font:16px/1.5 "DM Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--oro);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
-html {
-  background: var(--fondo);
-}
 
-body {
-  background: var(--fondo);
-  color: var(--crema);
-  font: 16px/1.5 var(--f-texto);
-  -webkit-font-smoothing: antialiased;
-}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--oro)}
+.suave{color:var(--suave);font-size:clamp(15px,4.4cqw,17px)}
+.mano{font-family:Caveat,cursive;font-weight:500}
+.lugar{font-family:Caveat,cursive;font-weight:500;font-size:clamp(22px,7.2cqw,28px);line-height:1.1;color:var(--oro)}
 
-p {
-  margin: 0;
-}
+/* Botones */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 22px;border:0;border-radius:999px;font-weight:600;font-size:16px;line-height:1;white-space:nowrap;background:var(--crema);color:var(--tinta);box-shadow:0 14px 30px -14px rgb(0 0 0 / .9);transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn.rosa{background:var(--rosa);color:#fff;box-shadow:0 16px 34px -14px var(--rosa)}
+.btn.vidrio{background:rgb(255 255 255 / .09);color:var(--crema);box-shadow:inset 0 0 0 1px var(--linea)}
+.btn svg{flex:none}
 
-button {
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.petalo{display:none}}
+:root{--campo:#2a1322;--borde:#4b2642}
+body.modo-carta{height:100%;overflow:hidden;display:grid;place-items:center}
 
-button:focus-visible {
-  outline: 2px solid var(--oro);
-  outline-offset: 3px;
-}
-
-[hidden] {
-  display: none !important;
-}
-
-.sr {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  border: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-delay: 0s !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+/* React: el #root no existe en el prototipo; en la carta no tiene que ocupar lugar propio. */
+body.modo-carta>#root{display:contents}

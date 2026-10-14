@@ -12,6 +12,8 @@ services:
     startCommand: uv run --no-sync uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
+      - key: ENTORNO
+        value: produccion
       - key: DATABASE_URL
         sync: false
       - key: SUPABASE_URL
@@ -45,4 +47,6 @@ services:
         value: noindex
     envVars:
       - key: VITE_API_URL
+        sync: false
+      - key: VITE_SITIO_URL
         sync: false

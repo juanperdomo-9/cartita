@@ -27,3 +27,4 @@ Thumbs.db
 supabase/.temp/
 supabase/.branches/
 .almacen/
+!frontend/.env.development

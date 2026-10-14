@@ -8,21 +8,21 @@ Cartas digitales que se abren como un regalo. La guía completa del proyecto est
 
 ## Desarrollo local
 
-Copiá `.env.example` a `backend/.env` (y la parte `VITE_*` a `frontend/.env.local`).
+Hace falta Docker (para el Postgres local), uv y Node.
 
 ```bash
-cd backend
-uv sync
-uv run uvicorn app.main:app --reload
+docker compose up -d
+cd backend && uv sync && uv run alembic upgrade head
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ```bash
-cd frontend
-npm install
-npm run dev
+cd frontend && npm install && npm run dev -- --host
 ```
 
-El backend queda en http://localhost:8000 (`/health` y `/api/docs`) y el frontend en http://localhost:5173.
+- Frontend: http://localhost:5173 · Backend: http://localhost:8000 (`/health` y `/api/docs`).
+- Sin `SUPABASE_URL`, las fotos y los audios se guardan en `backend/.almacen` con links firmados igual que en Storage.
+- Para probar desde el celular en la misma red wifi: abrí `http://IP-de-la-compu:5173` y poné `APP_BASE_URL=http://IP-de-la-compu:8000` en `backend/.env`. Grabar audio y compartir la imagen piden HTTPS: desde el celular se prueban recién con la versión publicada.
 
 ### Tests, linter y build
 
@@ -71,3 +71,16 @@ Los tests que necesiten base usan un Postgres local descartable (Supabase CLI co
 4. Comprobá que `https://<backend>/health` responde `{"estado":"ok"}` y que el frontend dice "backend: ok".
 
 Notas del plan free de Render: el backend se duerme después de 15 minutos sin tráfico y tarda alrededor de un minuto en despertar. Además no tiene pre-deploy, por eso las migraciones corren en el build (`alembic upgrade head`).
+
+## Antes de pasarle el link a tus amigos: prueba en celulares reales
+
+Con la versión publicada (HTTPS), en un iPhone y en un Android:
+
+1. Armar una carta completa desde el celular: fotos verticales y horizontales, 2 audios (uno grabado y uno subido), canción de YouTube y de Spotify.
+2. Abrir el link de ella desde WhatsApp (no copiado): que la vista previa diga "Tenés una carta 💌" sin nombres ni fotos.
+3. Recorrer la carta: sobre con sonido, historia (tocar izquierda/derecha, mantener apretado para pausar), antes y ahora con el dedo, raspadita, abrazos, "Contestale" e imagen para el estado (que se comparta directo).
+4. **Audios cruzados:** un audio grabado en Android tiene que escucharse en iPhone, y al revés.
+5. Probar con fecha de apertura en 5 minutos: antes no se ve nada, y al llegar a cero aparece "¡Ya la podés abrir!".
+6. Sumar un mensaje desde el link de la familia (con foto y audio) y ver que aparece en la carta y en el seguimiento; ocultarlo y ver que desaparece.
+7. Ver la carta desde el seguimiento y confirmar que no cuenta como abierta.
+8. Probar en pantalla chica (iPhone SE) y con el modo oscuro del celular.
