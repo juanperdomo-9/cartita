@@ -77,6 +77,9 @@ def servir_frontend(app: FastAPI, settings: Settings) -> None:
         archivo = (dist / ruta).resolve()
         if ruta and archivo.is_file() and dist in archivo.parents:
             return FileResponse(archivo)
+        # Un archivo que no existe (imagen, ícono…) es 404; las rutas de la web, index.html.
+        if "." in ruta.rsplit("/", 1)[-1]:
+            raise HTTPException(404, "No existe.")
         return HTMLResponse(index)
 
 

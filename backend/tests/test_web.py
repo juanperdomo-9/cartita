@@ -27,6 +27,7 @@ def test_sirve_la_web_y_la_api(tmp_path, monkeypatch):
         assert cliente.get("/og.png").content == b"\x89PNG"
         assert cliente.get("/health").json() == {"estado": "ok"}
         assert cliente.get("/api/no-existe").status_code == 404
+        assert cliente.get("/og-no-existe.jpg").status_code == 404
         assert "dependencies" not in cliente.get("/..%2Fpyproject.toml").text
     finally:
         get_settings.cache_clear()
