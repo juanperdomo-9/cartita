@@ -15,8 +15,13 @@ VISTAS_PREVIAS = {
 }
 POR_DEFECTO = "sonido"
 
-# Imagen abstracta, sin sobre ni nada que dé pistas
-IMAGEN_NEUTRA = "/og-neutra.png"
+
+def imagen(clave: str) -> str:
+    """Una imagen por frase (frontend/public/og-*.jpg): la frase sobre fondo bordó, sin pistas.
+
+    Livianas a propósito: WhatsApp no muestra imágenes de más de unos 300 KB.
+    """
+    return f"/og-{clave if clave in VISTAS_PREVIAS else POR_DEFECTO}.jpg"
 
 
 def _poner(pagina: str, atributo: str, nombre: str, valor: str) -> str:
@@ -25,10 +30,10 @@ def _poner(pagina: str, atributo: str, nombre: str, valor: str) -> str:
 
 
 def con_vista_previa(pagina: str, clave: str, sitio: str) -> str:
-    """La página de la carta con la frase elegida y la imagen neutra."""
+    """La página de la carta con la frase elegida y su imagen."""
     titulo = VISTAS_PREVIAS.get(clave, VISTAS_PREVIAS[POR_DEFECTO])
     pagina = _poner(pagina, "property", "og:title", titulo)
     pagina = _poner(pagina, "property", "og:description", "")
     pagina = _poner(pagina, "name", "description", titulo)
-    pagina = _poner(pagina, "property", "og:image", sitio + IMAGEN_NEUTRA)
+    pagina = _poner(pagina, "property", "og:image", sitio + imagen(clave))
     return re.sub(r"<title>[^<]*</title>", f"<title>{html.escape(titulo)}</title>", pagina)

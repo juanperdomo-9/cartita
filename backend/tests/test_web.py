@@ -59,7 +59,7 @@ def test_link_de_ella_lleva_la_vista_previa_elegida(tmp_path, monkeypatch, clien
         web = TestClient(crear_app())
         pagina = web.get(f"/c/{c['slug']}").text
         assert 'og:title" content="Mirá esto 👀"' in pagina
-        assert 'og:image" content="https://sitio.onrender.com/og-neutra.png"' in pagina
+        assert 'og:image" content="https://sitio.onrender.com/og-mira.jpg"' in pagina
         assert "<title>Mirá esto 👀</title>" in pagina
         assert "Ma" not in pagina and "Juan" not in pagina and "Secreto" not in pagina
         # Un slug que no existe sale con la frase por defecto, sin dar pistas
