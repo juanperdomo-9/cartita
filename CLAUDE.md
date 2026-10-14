@@ -52,6 +52,7 @@ En la Fase 1 solo está activa Día de la Madre, pero el Inicio con todas las oc
 **Frontend (`frontend/`)**
 - React + Vite + TypeScript
 - React Router, TanStack Query
+- Linter: oxlint (`npm run lint`)
 - CSS por componente, con todos los colores y medidas como variables en `src/styles/tokens.css` (copiadas del prototipo). Sin Tailwind: el diseño ya está hecho y se porta tal cual.
 - Tipografías de Google Fonts. En la carta: Instrument Serif (títulos), Caveat (letra a mano) y DM Sans (texto). En la portada: Young Serif (títulos), Kalam (anotaciones en birome) y Courier Prime (sellos y el ticket)
 - Dos modos: la portada y el armado siguen el modo claro u oscuro del celular (claro = papel, oscuro = bordó) y tienen un botón para cambiarlo. La carta tiene su propio estilo (`papel` o `bordo`), que elige quien la arma; en la vista previa se puede alternar

@@ -26,6 +26,9 @@ package = false
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+# Starlette sugiere httpx2 para el TestClient. Seguimos con httpx (lo usa también Storage)
+# hasta que httpx2 esté maduro; se revisa al actualizar FastAPI.
+filterwarnings = ["ignore:Using `httpx` with `starlette.testclient` is deprecated"]
 
 [tool.ruff]
 line-length = 100
