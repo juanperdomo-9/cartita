@@ -298,7 +298,7 @@ def test_editar_textos_y_archivos(cliente):
     assert cliente.put(seg, json=datos).status_code == 200
     body = cliente.get(f"/api/c/{c['slug']}").json()["contenido"]
     assert body["carta"] == "Te quiero mucho" and body["titulo"] == "Nuevo título"
-    assert cliente.put(seg, json=datos | {"carta": "a" * 701}).status_code == 422
+    assert cliente.put(seg, json=datos | {"carta": "a" * 2001}).status_code == 422
 
     # Cambiar la foto del recuerdo: se borra la vieja y se sube otra
     assert subir(cliente, c, JPG)[0] == 422  # ya hay una
@@ -332,7 +332,7 @@ def test_videos_en_la_pila(cliente):
     mp4 = b"\x00\x00\x00\x18ftypmp42" + b"\x00" * 200
     video = {"tipo": "video", "rol": "pila", "mime": "video/mp4", "duracion_seg": 10}
     assert subir(cliente, c, mp4, **video)[0] == 200
-    assert subir(cliente, c, mp4, **video, duracion_seg=90)[0] == 422
+    assert subir(cliente, c, mp4, **(video | {"duracion_seg": 90}))[0] == 422
     assert subir(cliente, c, mp4, **(video | {"rol": "principal"}))[0] == 422
     pila = cliente.get(f"/api/c/{c['slug']}").json()["contenido"]["fotos"]["pila"]
     assert pila[0]["tipo"] == "video"

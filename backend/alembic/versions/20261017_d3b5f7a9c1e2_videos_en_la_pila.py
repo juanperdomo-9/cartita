@@ -17,10 +17,12 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.drop_constraint("ck_archivos_tipo", "archivos", type_="check")
-    op.create_check_constraint("ck_archivos_tipo", "archivos", "tipo IN ('foto', 'audio', 'video')")
+    op.drop_constraint(op.f("ck_archivos_tipo"), "archivos", type_="check")
+    op.create_check_constraint(
+        op.f("ck_archivos_tipo"), "archivos", "tipo IN ('foto', 'audio', 'video')"
+    )
 
 
 def downgrade() -> None:
-    op.drop_constraint("ck_archivos_tipo", "archivos", type_="check")
-    op.create_check_constraint("ck_archivos_tipo", "archivos", "tipo IN ('foto', 'audio')")
+    op.drop_constraint(op.f("ck_archivos_tipo"), "archivos", type_="check")
+    op.create_check_constraint(op.f("ck_archivos_tipo"), "archivos", "tipo IN ('foto', 'audio')")

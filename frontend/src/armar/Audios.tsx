@@ -150,7 +150,7 @@ export default function Audios({ audios, onCambio, max, conNombre, onError, text
               {textoSubir}
               <input
                 type="file"
-                accept="audio/*,.opus,.ogg,.oga,.m4a,.mp3,.aac,.wav,.webm"
+                accept="audio/*,.opus,.ogg,.oga,.m4a,.mp3,.mpeg,.mpga,.aac,.wav,.webm"
                 aria-label={textoSubir}
                 onChange={(e) => {
                   sumar(e.target.files?.[0])
