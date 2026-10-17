@@ -61,7 +61,7 @@ export const VACIO: Borrador = {
 export type LugarFoto = 'principal' | 'p0' | 'p1' | 'p2' | 'antes' | 'ahora'
 
 /** Una foto del armado: nueva (con `blob`, falta subirla) o ya guardada (con `id`). */
-export type FotoArmado = Omit<FotoLista, 'blob'> & { blob?: Blob; id?: string }
+export type FotoArmado = Omit<FotoLista, 'blob'> & { blob?: Blob; id?: string; video?: boolean; seg?: number }
 export type AudioArmado = Omit<AudioListo, 'blob'> & { blob?: Blob; id?: string }
 export type Fotos = Record<LugarFoto, FotoArmado | null> & { pila: FotoArmado[] }
 
@@ -152,7 +152,7 @@ export function aCrear(b: Borrador, o: OcasionActiva): CartaCrear {
 
 /** Para la vista previa: la carta tal como la vería ella, con las fotos en memoria. */
 export function aVistaPrevia(b: Borrador, o: OcasionActiva, f: Fotos, audios: AudioArmado[]): CartaVista {
-  const foto = (x: FotoArmado | null) => (x ? { url: x.url, ancho: x.ancho, alto: x.alto } : null)
+  const foto = (x: FotoArmado | null) => (x ? { url: x.url, ancho: x.ancho, alto: x.alto, video: x.video } : null)
   return {
     ocasion: o.clave,
     para: b.para.trim() || o.textos.paraDefecto,
@@ -233,6 +233,10 @@ export function desdeEdicion(e: CartaParaEditar, o: OcasionActiva): { b: Borrado
   const fotos: Fotos = { ...SIN_FOTOS, pila: [] }
   const audios: AudioArmado[] = []
   for (const a of e.archivos) {
+    if (a.tipo === 'video') {
+      fotos.pila.push({ id: a.id, url: a.url, ancho: a.ancho || 0, alto: a.alto || 0, video: true })
+      continue
+    }
     if (a.tipo === 'audio') {
       audios.push({ id: a.id, url: a.url, seg: a.seg, quien: a.quien })
       continue

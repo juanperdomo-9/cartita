@@ -13,7 +13,7 @@ import {
 import { ErrorApi } from '../api/cliente'
 import Escena from '../carta/Escena'
 import { ICONO_EQUIS, Marca, copiar, useToast } from '../components/comunes'
-import { comprimir, guardarMia, mimeDe } from '../lib/archivos'
+import { comprimir, esVideo, guardarMia, leerVideo, mimeDe } from '../lib/archivos'
 import { leerCancion, nombreServicio } from '../lib/cancion'
 import { esPlural, fechaLinda } from '../lib/texto'
 import { tituloVistaPrevia, VISTAS_PREVIAS } from '../lib/vistaPrevia'
@@ -166,7 +166,9 @@ export default function Armar({ ocasion, edicion }: { ocasion: OcasionActiva; ed
         l.push({
           clave: 'pila' + f.url,
           blob: f.blob,
-          pedido: { tipo: 'foto', rol: 'pila', orden: i, mime: 'image/jpeg', bytes: f.blob.size, ancho: f.ancho, alto: f.alto },
+          pedido: f.video
+            ? { tipo: 'video', rol: 'pila', orden: i, mime: f.blob.type, bytes: f.blob.size, ancho: f.ancho, alto: f.alto, duracion_seg: f.seg }
+            : { tipo: 'foto', rol: 'pila', orden: i, mime: 'image/jpeg', bytes: f.blob.size, ancho: f.ancho, alto: f.alto },
         })
     })
     audios.forEach((a, i) => {
@@ -460,11 +462,12 @@ export default function Armar({ ocasion, edicion }: { ocasion: OcasionActiva; ed
       </div>
       <div className="campo">
         <span className="lbl">
-          Pila de fotos<span className="opc">hasta 6</span>
+          Pila de fotos y videos<span className="opc">hasta 6 · videos de hasta 1 minuto</span>
         </span>
         <div className="galeria-armar">
           {fotos.pila.map((f, i) => (
-            <div className="mini" key={f.url} style={{ backgroundImage: `url("${f.url}")` }}>
+            <div className="mini" key={f.url} style={f.video ? undefined : { backgroundImage: `url("${f.url}")` }}>
+              {f.video && <video className="mini-video" src={f.url} muted playsInline preload="metadata" />}
               <button
                 type="button"
                 aria-label={'Quitar foto ' + (i + 1)}
@@ -480,10 +483,10 @@ export default function Armar({ ocasion, edicion }: { ocasion: OcasionActiva; ed
         </div>
         {fotos.pila.length < 6 && (
           <label className="btn vidrio boton-archivo">
-            Sumar fotos
+            Sumar fotos o videos
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,video/*"
               multiple
               aria-label="Sumar fotos a la pila"
               onChange={async (e) => {
@@ -491,7 +494,11 @@ export default function Armar({ ocasion, edicion }: { ocasion: OcasionActiva; ed
                 e.target.value = ''
                 for (const file of archivos) {
                   try {
-                    const f = await comprimir(file)
+                    const f = await (esVideo(file) ? leerVideo(file) : comprimir(file))
+                    if (typeof f === 'string') {
+                      avisar(f)
+                      continue
+                    }
                     setFotos((x) => (x.pila.length < 6 ? { ...x, pila: [...x.pila, f] } : x))
                   } catch {
                     avisar('No pudimos leer una de las fotos.')
@@ -798,7 +805,7 @@ function Resumen({
     [
       nPolas + fotos.pila.length > 0,
       'Sus fotos',
-      nPolas + fotos.pila.length ? nPolas + ' polaroids' + (fotos.pila.length ? ' y ' + fotos.pila.length + ' en la pila' : '') : 'Sin fotos todavía',
+      nPolas + fotos.pila.length ? nPolas + ' polaroids' + (fotos.pila.length ? ' y ' + fotos.pila.length + ' en la pila (fotos y videos)' : '') : 'Sin fotos todavía',
     ],
     [
       !!(fotos.antes && fotos.ahora),

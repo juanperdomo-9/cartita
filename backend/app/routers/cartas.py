@@ -135,8 +135,10 @@ def nuevo_archivo(
         if ya:
             raise HTTPException(422, "Cada mensaje lleva una foto y un audio como máximo.")
     else:
-        esperado = "audio" if rol in reglas.ROLES_AUDIO else "foto"
-        if pedido.tipo != esperado:
+        esperado = {"audio"} if rol in reglas.ROLES_AUDIO else {"foto"}
+        if rol == "pila":
+            esperado = {"foto", "video"}
+        if pedido.tipo not in esperado:
             raise HTTPException(422, "Ese archivo no va en ese lugar de la carta.")
         if lleno(db, carta, rol):
             raise HTTPException(422, "Ya llegaste al máximo de archivos para esa parte.")
@@ -211,7 +213,9 @@ def confirmar_archivo(
     if leido is None:
         raise HTTPException(409, "El archivo todavía no se subió.")
     cabeza, tamano = leido
-    maximo = reglas.MAX_FOTO if archivo.tipo == "foto" else reglas.MAX_AUDIO
+    maximo = {"foto": reglas.MAX_FOTO, "video": reglas.MAX_VIDEO}.get(
+        archivo.tipo, reglas.MAX_AUDIO
+    )
     if tamano > maximo or not reglas.contenido_valido(archivo.tipo, archivo.mime, cabeza[:16]):
         almacen.borrar([archivo.ruta])
         db.delete(archivo)

@@ -149,3 +149,6 @@ a.btn{text-decoration:none}
 .nombres span{padding:6px 12px;border-radius:999px;background:rgb(255 255 255 / .07);font-size:14px}
 .pagina .fila .btn{flex:1 1 auto}
 .vista-foto{width:100%;aspect-ratio:16/10;border-radius:16px;background:var(--campo) center/cover no-repeat}
+
+/* Videos en la pila del armado (no está en el prototipo) */
+.mini-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:14px}

@@ -619,13 +619,16 @@ export class MotorCarta {
       s.dataset.pila = '1'
       const pila = el('div', 'media pila')
       gal.forEach((g, i) => {
-        const pf = el('div', 'pf'),
-          img = new Image()
-        img.alt = 'Foto ' + (i + 1)
-        img.src = fuente(g, MUESTRA_GAL[i], FORMA_GAL[i][0], FORMA_GAL[i][1])
+        const pf = el('div', 'pf')
+        if (g?.video) pf.append(...this.videoPila(g.url))
+        else {
+          const img = new Image()
+          img.alt = 'Foto ' + (i + 1)
+          img.src = fuente(g, MUESTRA_GAL[i], FORMA_GAL[i][0], FORMA_GAL[i][1])
+          pf.append(img)
+        }
         pf.style.setProperty('--rot', [-6, 5, -3, 7, -8, 3][i] + 'deg')
         pf.style.zIndex = String(i + 1)
-        pf.append(img)
         pila.append(pf)
       })
       pila.append(el('span', 'pila-cuenta', ''))
@@ -717,6 +720,30 @@ export class MotorCarta {
       i.append(el('b', ''))
       barras.append(i)
     })
+  }
+
+  // Video de la pila: se reproduce en silencio y en loop; el botón le pone sonido
+  private videoPila(url: string): HTMLElement[] {
+    const v = document.createElement('video')
+    v.src = url
+    v.muted = true
+    v.loop = true
+    v.autoplay = true
+    v.playsInline = true
+    v.preload = 'metadata'
+    v.setAttribute('playsinline', '')
+    v.play().catch(() => {})
+    const b = el('button', 'sonar-video', '🔇')
+    b.type = 'button'
+    b.setAttribute('aria-label', 'Activar el sonido del video')
+    b.addEventListener('click', () => {
+      v.muted = !v.muted
+      if (!v.muted) v.play().catch(() => {})
+      b.textContent = v.muted ? '🔇' : '🔊'
+      b.setAttribute('aria-label', v.muted ? 'Activar el sonido del video' : 'Silenciar el video')
+      this.volumen(v.muted ? 0.9 : 0.15)
+    })
+    return [v, b]
   }
 
   // Antes y ahora: arrastrar la manija
@@ -827,6 +854,11 @@ export class MotorCarta {
   private mostrar(n: number) {
     this.actual = n
     this.pararAudio()
+    // Los videos con sonido de otra pantalla se silencian al pasar
+    this.root.querySelectorAll<HTMLVideoElement>('.pf video').forEach((v) => {
+      if (!v.muted) v.muted = true
+    })
+    this.root.querySelectorAll('.sonar-video').forEach((b) => (b.textContent = '🔇'))
     if (this.temporizador) clearTimeout(this.temporizador)
     this.temporizador = null
     this.restante = 0
@@ -1017,7 +1049,7 @@ export class MotorCarta {
     g.font = '600 30px "DM Sans", sans-serif'
     g.fillText(this.ocasion.textos.eyebrow.toUpperCase().split('').join(' '), W / 2, 230)
     const f = carta.fotos
-    const foto = [f.principal, f.p0, f.p1, f.p2, f.ahora, ...(f.pila || [])].find((x) => x)
+    const foto = [f.principal, f.p0, f.p1, f.p2, f.ahora, ...(f.pila || [])].find((x) => x && !x.video)
     const img = await cargarImg(fuente(foto, 'mar', 800, 800))
     g.save()
     g.translate(W / 2, 760)

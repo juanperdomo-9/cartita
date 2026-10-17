@@ -70,7 +70,9 @@ def contenido(carta: Carta) -> schemas.Contenido:
 
     def foto(a: Archivo) -> schemas.FotoPublica | None:
         url = urls.get(a.ruta)
-        return schemas.FotoPublica(url=url, ancho=a.ancho, alto=a.alto) if url else None
+        if not url:
+            return None
+        return schemas.FotoPublica(url=url, tipo=a.tipo, ancho=a.ancho, alto=a.alto)
 
     def audio(a: Archivo, quien: str) -> schemas.AudioPublico | None:
         url = urls.get(a.ruta)

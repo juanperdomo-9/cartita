@@ -6,6 +6,8 @@ export type Estilo = 'papel' | 'bordo'
 
 export interface Foto {
   url: string
+  /** En la pila también puede haber videos */
+  video?: boolean
   ancho?: number | null
   alto?: number | null
 }

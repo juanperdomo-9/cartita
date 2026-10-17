@@ -324,3 +324,15 @@ def test_editar_con_token_equivocado_o_archivo_de_la_familia(cliente):
     ).json()
     # El de la familia no se borra desde editar (se oculta el mensaje)
     assert cliente.delete(f"/api/e/{c['token_admin']}/archivos/{r['id']}").status_code == 404
+
+
+def test_videos_en_la_pila(cliente):
+    c = nueva_carta(cliente)
+    publicar(cliente, c)
+    mp4 = b"\x00\x00\x00\x18ftypmp42" + b"\x00" * 200
+    video = {"tipo": "video", "rol": "pila", "mime": "video/mp4", "duracion_seg": 10}
+    assert subir(cliente, c, mp4, **video)[0] == 200
+    assert subir(cliente, c, mp4, **video, duracion_seg=90)[0] == 422
+    assert subir(cliente, c, mp4, **(video | {"rol": "principal"}))[0] == 422
+    pila = cliente.get(f"/api/c/{c['slug']}").json()["contenido"]["fotos"]["pila"]
+    assert pila[0]["tipo"] == "video"

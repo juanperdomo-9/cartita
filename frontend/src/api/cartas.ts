@@ -37,7 +37,7 @@ export interface CartaCreada {
 }
 
 export interface PedidoArchivo {
-  tipo: 'foto' | 'audio'
+  tipo: 'foto' | 'audio' | 'video'
   mime: string
   bytes: number
   ancho?: number
@@ -60,6 +60,7 @@ interface AudioApi {
 
 interface FotoApi {
   url: string
+  tipo?: 'foto' | 'video'
   ancho: number | null
   alto: number | null
 }
@@ -214,7 +215,7 @@ export async function sumarMensaje(
 // ---------- Editar ----------
 export interface ArchivoGuardado {
   id: string
-  tipo: 'foto' | 'audio'
+  tipo: 'foto' | 'audio' | 'video'
   rol: string
   orden: number
   url: string
@@ -246,7 +247,8 @@ export const cambiarMensaje = (token: string, id: string, visible: boolean) =>
   })
 
 // ---------- De la API a la carta ----------
-const foto = (f: FotoApi | null | undefined): Foto | null => (f ? { url: f.url, ancho: f.ancho, alto: f.alto } : null)
+const foto = (f: FotoApi | null | undefined): Foto | null =>
+  f ? { url: f.url, ancho: f.ancho, alto: f.alto, video: f.tipo === 'video' } : null
 
 export function aVista(c: CartaApi): CartaVista | CartaEnEspera {
   const x = c.contenido

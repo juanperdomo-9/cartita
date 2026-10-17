@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ICONO_EQUIS, ICONO_PAUSA, ICONO_PLAY } from '../components/comunes'
-import { leerAudio, MAX_AUDIO_SEG } from '../lib/archivos'
+import { aWav, leerAudio, MAX_AUDIO_SEG } from '../lib/archivos'
 import { mmss } from '../lib/texto'
 import type { AudioArmado } from './borrador'
 
@@ -84,10 +84,13 @@ export default function Audios({ audios, onCambio, max, conNombre, onError, text
       grabador.current = null
       setGrabando(false)
       const tipo = (rec.mimeType || formato || 'audio/webm').split(';')[0]
-      const blob = new Blob(partes, { type: tipo })
-      if (!blob.size) return onError('No se grabó nada. Probá de nuevo.')
+      const crudo = new Blob(partes, { type: tipo })
+      if (!crudo.size) return onError('No se grabó nada. Probá de nuevo.')
       const seg = Math.min(MAX_AUDIO_SEG, Math.max(1, Math.round((Date.now() - inicio) / 1000)))
-      onCambio([...audios, { blob, url: URL.createObjectURL(blob), seg, quien: '' }])
+      // WebM (Chrome sin MP4) no suena en iPhone: se pasa a WAV
+      ;(tipo === 'audio/mp4' ? Promise.resolve(crudo) : aWav(crudo)).then((blob) =>
+        onCambio([...audios, { blob, url: URL.createObjectURL(blob), seg, quien: '' }]),
+      )
     }
     grabador.current = rec
     setSegundos(0)

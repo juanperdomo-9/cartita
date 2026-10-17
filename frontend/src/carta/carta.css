@@ -255,3 +255,7 @@
 .musica-fija{position:absolute;z-index:6;overflow:hidden;border-radius:12px;transition:opacity .4s}
 .musica-fija iframe{display:block;width:100%;height:100%;border:0}
 .musica-fija.escondida{opacity:0;pointer-events:none}
+
+/* Videos en la pila (no está en el prototipo): mismo marco que las fotos */
+.pf video{display:block;width:auto;height:auto;max-width:80cqw;max-height:calc(88cqh - 18px);background:#000}
+.sonar-video{position:absolute;right:14px;bottom:16px;width:38px;height:38px;border:0;border-radius:50%;background:rgb(0 0 0 / .55);font-size:17px;line-height:1;display:grid;place-items:center}

@@ -109,7 +109,7 @@ class MensajeFamilia(Base):
 class Archivo(Base):
     __tablename__ = "archivos"
     __table_args__ = (
-        CheckConstraint("tipo IN ('foto', 'audio')", name="tipo"),
+        CheckConstraint("tipo IN ('foto', 'audio', 'video')", name="tipo"),
         CheckConstraint(
             "rol IN ('principal', 'p0', 'p1', 'p2', 'antes', 'ahora', 'pila', 'audio_autor',"
             " 'familia')",

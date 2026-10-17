@@ -7,6 +7,8 @@ MB = 1024 * 1024
 MAX_FOTO = int(1.5 * MB)
 MAX_AUDIO = 3 * MB
 MAX_SEG_AUDIO = 90
+MAX_VIDEO = 25 * MB
+MAX_SEG_VIDEO = 60
 
 MIMES_FOTO = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
 MIMES_AUDIO = {
@@ -25,6 +27,8 @@ MIMES_AUDIO = {
     "audio/x-wav": "wav",
     "audio/wave": "wav",
 }
+
+MIMES_VIDEO = {"video/mp4": "mp4", "video/quicktime": "mov", "video/webm": "webm"}
 
 ROLES_FOTO = {"principal", "p0", "p1", "p2", "antes", "ahora", "pila"}
 ROLES_AUDIO = {"audio_autor"}
@@ -61,7 +65,7 @@ def mime_limpio(mime: str) -> str:
 
 
 def extension(tipo: str, mime: str) -> str:
-    tabla = MIMES_FOTO if tipo == "foto" else MIMES_AUDIO
+    tabla = {"foto": MIMES_FOTO, "video": MIMES_VIDEO}.get(tipo, MIMES_AUDIO)
     return tabla[mime_limpio(mime)]
 
 
@@ -82,6 +86,13 @@ def validar_pedido(p: Pedido) -> None:
             raise ArchivoInvalido("El audio pesa más de 3 MB.")
         if p.duracion_seg is not None and p.duracion_seg > MAX_SEG_AUDIO:
             raise ArchivoInvalido("El audio dura más de un minuto y medio.")
+    elif p.tipo == "video":
+        if mime not in MIMES_VIDEO:
+            raise ArchivoInvalido("Los videos tienen que ser MP4, MOV o WEBM.")
+        if p.bytes > MAX_VIDEO:
+            raise ArchivoInvalido("El video pesa más de 25 MB.")
+        if p.duracion_seg is not None and p.duracion_seg > MAX_SEG_VIDEO:
+            raise ArchivoInvalido("El video dura más de un minuto.")
     else:
         raise ArchivoInvalido("Tipo de archivo desconocido.")
 
@@ -99,6 +110,11 @@ def contenido_valido(tipo: str, mime: str, cabeza: bytes) -> bool:
             "image/png": cabeza[:8] == b"\x89PNG\r\n\x1a\n",
             "image/webp": cabeza[:4] == b"RIFF" and cabeza[8:12] == b"WEBP",
         }.get(mime, False)
+    if tipo == "video":
+        if mime == "video/webm":
+            return cabeza[:4] == b"\x1a\x45\xdf\xa3"
+        # MP4 y MOV (QuickTime): empiezan con una caja ftyp, moov, wide, free o mdat
+        return cabeza[4:8] in (b"ftyp", b"moov", b"wide", b"free", b"mdat")
     ext = MIMES_AUDIO.get(mime)
     if ext in ("mp3", "aac"):
         return _es_mp3(cabeza)

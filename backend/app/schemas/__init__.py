@@ -19,7 +19,7 @@ def Texto(maximo: int, minimo: int = 0):  # noqa: N802 (se usa como tipo)
 Estilo = Literal["papel", "bordo"]
 VistaPrevia = Literal["sonido", "para_vos", "mira", "ratito"]
 Rol = Literal["principal", "p0", "p1", "p2", "antes", "ahora", "pila", "audio_autor"]
-TipoArchivo = Literal["foto", "audio"]
+TipoArchivo = Literal["foto", "audio", "video"]
 
 
 # ---------- Crear la carta ----------
@@ -95,6 +95,8 @@ class ArchivoFirmado(BaseModel):
 # ---------- La carta para ella ----------
 class FotoPublica(BaseModel):
     url: str
+    # En la pila también puede haber videos
+    tipo: Literal["foto", "video"] = "foto"
     ancho: int | None = None
     alto: int | None = None
 
