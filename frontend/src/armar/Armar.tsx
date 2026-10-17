@@ -402,7 +402,7 @@ export default function Armar({ ocasion, edicion }: { ocasion: OcasionActiva; ed
       {encabezado(<>Tu <em>carta</em></>, "Escribile como le hablarías. Sale en una hoja escrita a mano y ella la lee a su ritmo: no pasa sola.", "Una hoja de carta, después de la primera frase")}
       <div className="campo">
         <label htmlFor="f-carta">Lo que le querés decir</label>
-        <textarea id="f-carta" maxLength={700} placeholder={ocasion.textos.cartaPlaceholder} value={b.carta} onChange={(e) => cambiar('carta', e.target.value)} />
+        <textarea id="f-carta" maxLength={2000} placeholder={ocasion.textos.cartaPlaceholder} value={b.carta} onChange={(e) => cambiar('carta', e.target.value)} />
         <div className="pie-campo">
           <button
             type="button"
@@ -415,7 +415,7 @@ export default function Armar({ ocasion, edicion }: { ocasion: OcasionActiva; ed
           >
             Empezar con un ejemplo
           </button>
-          <span className="cuenta">{b.carta.length} / 700</span>
+          <span className="cuenta">{b.carta.length} / 2000</span>
         </div>
       </div>
       <div className="consejo">

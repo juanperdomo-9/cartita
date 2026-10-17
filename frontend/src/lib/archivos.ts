@@ -73,13 +73,27 @@ export function duracion(src: string): Promise<number> {
 export const MAX_AUDIO_BYTES = 3 * 1024 * 1024
 export const MAX_AUDIO_SEG = 90
 
+/**
+ * El formato real del audio, mirando sus primeros bytes. El tipo que informa el celular no
+ * sirve: un audio reenviado de WhatsApp (.opus) suele llegar sin tipo o con uno equivocado.
+ */
+async function tipoDeAudio(file: Blob): Promise<string | null> {
+  const c = new Uint8Array(await file.slice(0, 12).arrayBuffer())
+  const txt = (a: number, b: number) => String.fromCharCode(...c.slice(a, b))
+  if (txt(0, 4) === 'OggS') return 'audio/ogg'
+  if (txt(4, 8) === 'ftyp') return 'audio/mp4'
+  if (txt(0, 4) === 'RIFF' && txt(8, 12) === 'WAVE') return 'audio/wav'
+  if (c[0] === 0x1a && c[1] === 0x45 && c[2] === 0xdf && c[3] === 0xa3) return 'audio/webm'
+  if (txt(0, 3) === 'ID3' || (c[0] === 0xff && (c[1] & 0xe0) === 0xe0)) return 'audio/mpeg'
+  return null
+}
+
 /** Lee un audio subido como archivo. Devuelve un mensaje si no sirve. */
 export async function leerAudio(file: File): Promise<AudioListo | string> {
-  if (!/^audio\//.test(file.type) && !/\.(m4a|mp3|ogg|opus|wav|aac|webm|mp4)$/i.test(file.name))
-    return 'Ese archivo no es un audio.'
   if (file.size > MAX_AUDIO_BYTES) return 'Ese audio es muy largo. Probá con uno de menos de un minuto y medio.'
-  const tipo = file.type || (/\.mp3$/i.test(file.name) ? 'audio/mpeg' : 'audio/mp4')
-  const blob = file.type ? file : new Blob([file], { type: tipo })
+  const tipo = await tipoDeAudio(file)
+  if (!tipo) return 'Ese archivo no es un audio que podamos usar (mp3, m4a, ogg/opus, wav o webm).'
+  const blob = new Blob([file], { type: tipo })
   const url = URL.createObjectURL(blob)
   const seg = Math.round(await duracion(url))
   if (seg > MAX_AUDIO_SEG) return 'Ese audio dura más de un minuto y medio. Probá con uno más corto.'

@@ -30,7 +30,7 @@ class CartaCrear(BaseModel):
     desde: date | None = None
     titulo: Texto(70) = ""
     subtitulo: Texto(60) = ""
-    carta: Texto(700) = ""
+    carta: Texto(2000) = ""
     lugar: Texto(40) = ""
     recuerdo: Texto(90) = ""
     polas: list[Texto(20)] = Field(default_factory=list, max_length=3)

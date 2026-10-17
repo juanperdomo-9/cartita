@@ -215,7 +215,9 @@ def test_mensaje_oculto_no_aparece_en_la_carta(cliente):
 def test_textos_de_mas_se_rechazan(cliente):
     assert cliente.post("/api/cartas", json={"para": "M" * 21, "de": "Yo"}).status_code == 422
     assert (
-        cliente.post("/api/cartas", json={"para": "Ma", "de": "Yo", "carta": "a" * 701}).status_code
+        cliente.post(
+            "/api/cartas", json={"para": "Ma", "de": "Yo", "carta": "a" * 2001}
+        ).status_code
         == 422
     )
     assert (

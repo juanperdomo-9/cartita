@@ -56,7 +56,7 @@ class Carta(Base):
     desde: Mapped[date | None] = mapped_column(Date)
     titulo: Mapped[str] = mapped_column(String(70), nullable=False, server_default="")
     subtitulo: Mapped[str] = mapped_column(String(60), nullable=False, server_default="")
-    carta: Mapped[str] = mapped_column(String(700), nullable=False, server_default="")
+    carta: Mapped[str] = mapped_column(String(2000), nullable=False, server_default="")
     lugar: Mapped[str] = mapped_column(String(40), nullable=False, server_default="")
     recuerdo: Mapped[str] = mapped_column(String(90), nullable=False, server_default="")
     polas: Mapped[list[str]] = mapped_column(JSONB, nullable=False, server_default="[]")
