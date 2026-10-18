@@ -321,7 +321,11 @@ export class MotorCarta {
   }
   private volumen(v: number) {
     if (this.master && this.ctx) this.master.gain.setTargetAtTime(v, this.ctx.currentTime, 0.2)
+    // En celulares (sobre todo iPhone) YouTube ignora setVolume: mientras suena un audio se
+    // silencia la canción y después vuelve (salvo que ella la haya silenciado con el botón).
     this.youtube('setVolume', [Math.round(v * 100)])
+    if (v < 0.5) this.youtube('mute')
+    else if (!this.muda) this.youtube('unMute')
   }
 
   // ---------- canción real (YouTube o Spotify) ----------
