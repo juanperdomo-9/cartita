@@ -235,7 +235,7 @@ export default function PortadaDiaMadre() {
                 <div className="brillo" />
               </div>
               <figcaption>
-                su canción <span>(pegás el link de YouTube o Spotify)</span>
+                su canción <span>(pegás el link de YouTube)</span>
               </figcaption>
             </figure>
             <figure className="obj o5">

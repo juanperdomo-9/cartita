@@ -235,7 +235,7 @@ Detalles que vienen del prototipo y hay que mantener:
 - Se rechazan archivos de más tamaño, de otro tipo o que superan el límite por carta.
 - Un mensaje de la familia oculto no aparece en la carta.
 - Los límites de texto se cortan o rechazan en el backend aunque el frontend mande de más.
-- El link de canción solo acepta canciones de YouTube o Spotify (no álbumes ni listas) y se guarda como `tipo` + `id`.
+- El link de canción solo acepta videos de YouTube (no listas; Spotify se sacó el 17/10) y se guarda como `tipo` + `id`.
 - Etapa 2: webhook con firma inválida responde 401, webhook repetido confirma una sola vez y un monto distinto no publica la carta.
 
 ## Fases

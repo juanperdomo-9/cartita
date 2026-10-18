@@ -588,22 +588,16 @@ export default function Armar({ ocasion, edicion }: { ocasion: OcasionActiva; ed
     <>
       {encabezado(<>Su <em>canción</em></>, "Elegí el tema que te hace acordar a ella. Aparece en un disco y ella le da play antes de seguir leyendo.", "Suena mientras recorre la carta")}
       <div className={'campo' + (cancionError ? ' error' : '')}>
-        <label htmlFor="f-cancion">Link de YouTube o Spotify</label>
+        <label htmlFor="f-cancion">Link de YouTube</label>
         <input type="url" id="f-cancion" inputMode="url" placeholder="Pegá el link acá" value={b.cancion} onChange={(e) => cambiar('cancion', e.target.value)} />
         <p className={'msg' + (cancion && !cancionError ? ' ok' : '')}>
           {!cancion ? '' : cancionError || 'Listo: canción de ' + nombreServicio(cancion as Exclude<typeof cancion, { error: string }>) + '.'}
         </p>
-        {cancion && !cancionError && 'tipo' in cancion && cancion.tipo === 'spotify' && (
-          <p className="ayuda">
-            Ojo: si ella no tiene Spotify abierto en el celular, Spotify deja escuchar solo 30 segundos. Con un link de
-            YouTube suena el tema entero durante toda la carta.
-          </p>
-        )}
       </div>
       <div className="consejo">
         <b>Cómo copiar el link</b>
         <ol>
-          <li>Buscá el tema en YouTube o en Spotify.</li>
+          <li>Buscá el tema en YouTube.</li>
           <li>
             Tocá <strong>Compartir</strong> y después <strong>Copiar link</strong>.
           </li>

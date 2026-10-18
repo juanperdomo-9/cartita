@@ -1,4 +1,5 @@
-"""Link de la canción: solo canciones de YouTube o Spotify (no álbumes ni listas).
+"""Link de la canción: solo videos de YouTube (no listas). Spotify se sacó el 17/10: sin sesión
+suena solo 30 segundos y su reproductor no deja bajarle el volumen.
 
 Mismo criterio que `leerCancion()` del prototipo. Se guarda como tipo + id.
 """
@@ -8,8 +9,6 @@ from dataclasses import dataclass
 from urllib.parse import parse_qs, urlparse
 
 ID_YOUTUBE = re.compile(r"^[\w-]{11}$")
-TRACK_SPOTIFY = re.compile(r"/track/([A-Za-z0-9]{22})")
-NO_CANCION_SPOTIFY = re.compile(r"/(album|playlist|artist|show|episode)/")
 RUTA_YOUTUBE = re.compile(r"^/(shorts|embed|live)/([^/?#]+)")
 
 
@@ -32,7 +31,7 @@ def leer_cancion(link: str) -> Cancion | None:
     try:
         url = urlparse(texto)
     except ValueError as e:
-        raise CancionInvalida("Ese link no parece de YouTube ni de Spotify.") from e
+        raise CancionInvalida("Ese link no parece de YouTube.") from e
 
     host = re.sub(r"^(www|m)\.", "", (url.hostname or "").lower())
     video = None
@@ -46,11 +45,8 @@ def leer_cancion(link: str) -> Cancion | None:
     if video and ID_YOUTUBE.match(video):
         return Cancion("youtube", video)
 
-    if host == "open.spotify.com":
-        if m := TRACK_SPOTIFY.search(url.path):
-            return Cancion("spotify", m.group(1))
-        if NO_CANCION_SPOTIFY.search(url.path):
-            raise CancionInvalida(
-                "Ese link es de un álbum o una lista. Pegá el link de una canción."
-            )
-    raise CancionInvalida("Ese link no parece de una canción de YouTube o Spotify.")
+    if host in ("open.spotify.com", "spotify.link"):
+        raise CancionInvalida(
+            "Por ahora solo usamos canciones de YouTube. Buscá el tema ahí y pegá ese link."
+        )
+    raise CancionInvalida("Ese link no parece de una canción de YouTube.")

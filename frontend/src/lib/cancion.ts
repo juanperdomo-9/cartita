@@ -12,7 +12,7 @@ export function leerCancion(link: string): Cancion | { error: string } | null {
   try {
     u = new URL(/^https?:\/\//i.test(s) ? s : 'https://' + s)
   } catch {
-    return { error: 'Ese link no parece de YouTube ni de Spotify.' }
+    return { error: 'Ese link no parece de YouTube.' }
   }
   const h = u.hostname.toLowerCase().replace(/^(www|m)\./, '')
   let id: string | null = null
@@ -25,13 +25,9 @@ export function leerCancion(link: string): Cancion | { error: string } | null {
     }
   }
   if (id && /^[\w-]{11}$/.test(id)) return { tipo: 'youtube', id }
-  if (h === 'open.spotify.com') {
-    const m = u.pathname.match(/\/track\/([A-Za-z0-9]{22})/)
-    if (m) return { tipo: 'spotify', id: m[1] }
-    if (/\/(album|playlist|artist|show|episode)\//.test(u.pathname))
-      return { error: 'Ese link es de un álbum o una lista. Pegá el link de una canción.' }
-  }
-  return { error: 'Ese link no parece de una canción de YouTube o Spotify.' }
+  // Spotify sin sesión suena solo 30 segundos y no deja bajarle el volumen: solo YouTube.
+  if (h === 'open.spotify.com' || h === 'spotify.link') return { error: 'Por ahora solo usamos canciones de YouTube. Buscá el tema ahí y pegá ese link.' }
+  return { error: 'Ese link no parece de una canción de YouTube.' }
 }
 
 export const urlCancion = (c: Cancion) =>

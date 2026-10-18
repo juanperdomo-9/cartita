@@ -231,17 +231,14 @@ def test_textos_de_mas_se_rechazan(cliente):
     assert r.status_code == 422
 
 
-def test_cancion_solo_youtube_o_spotify_y_se_guarda_tipo_e_id(cliente):
+def test_cancion_solo_youtube_y_se_guarda_tipo_e_id(cliente):
     c = nueva_carta(cliente, cancion="https://youtu.be/dQw4w9WgXcQ?si=abc")
     publicar(cliente, c)
     cancion = cliente.get(f"/api/c/{c['slug']}").json()["contenido"]["cancion"]
     assert cancion == {"tipo": "youtube", "id": "dQw4w9WgXcQ"}
 
-    c = nueva_carta(cliente, cancion="open.spotify.com/intl-es/track/4uLU6hMCjMI75M1A2tKUQC?si=1")
-    publicar(cliente, c)
-    assert cliente.get(f"/api/c/{c['slug']}").json()["contenido"]["cancion"]["tipo"] == "spotify"
-
     for malo in (
+        "https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC",
         "https://open.spotify.com/album/4uLU6hMCjMI75M1A2tKUQC",
         "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
         "https://www.youtube.com/playlist?list=PL123",
